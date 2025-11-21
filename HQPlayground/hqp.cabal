@@ -25,7 +25,7 @@ common common-options
 
 library core
     import:   warnings, common-options
-    exposed-modules: QubitOperators, MatrixSemantics, PrettyOp, PrettyMatrix
+    exposed-modules: QubitOperators, MatrixSemantics, PrettyOp, PrettyMatrix, HQP
     build-depends:  
         base,
         hmatrix,
@@ -40,6 +40,12 @@ common exe-common
       hmatrix,
       hqp:core
   ghc-options: -Wall
+
+executable Test
+  import: exe-common
+  build-depends:
+    random
+  main-is: YesTeleportation.hs 
 
 executable NoCloning
   import: exe-common
