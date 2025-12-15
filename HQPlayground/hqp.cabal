@@ -35,16 +35,18 @@ library core
       HQP.QOp.MatrixSemantics,
       HQP.QOp.TensorSemantics,
       HQP.QOp.StabilizerSemantics,
+      HQP.HZX.Syntax,
       HQP.PrettyPrint,
       HQP.PrettyPrint.PrettyOp,
       HQP.PrettyPrint.PrettyMatrix,
-      Programs.QFT 
+      Programs.QFT,
 
     build-depends:  
         base,
         hmatrix,
         random,
-        mtl
+        mtl,
+        algebraic-graphs
     hs-source-dirs:   src
 
 common exe-common
@@ -55,18 +57,18 @@ common exe-common
       hqp:core
   ghc-options: -Wall
 
-executable NoCloning
-  import: exe-common
-  main-is: NoCloning.hs
+-- executable NoCloning
+--   import: exe-common
+--   main-is: NoCloning.hs
 
 
-executable ProgramInversion
-  import: exe-common
-  main-is: ProgramInversion.hs
+-- executable ProgramInversion
+--   import: exe-common
+--   main-is: ProgramInversion.hs
 
-executable YesTeleportation
-  import: exe-common
-  build-depends:
-    random
-  main-is: YesTeleportation.hs
+-- executable YesTeleportation
+--   import: exe-common
+--   build-depends:
+--     random
+--   main-is: YesTeleportation.hs
   
