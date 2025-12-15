@@ -1,3 +1,5 @@
+{-# LANGUAGE PatternSynonyms #-}
+
 module HQP.QOp.Syntax where
 import Data.Complex
 
@@ -12,7 +14,7 @@ data QOp
   = One -- Neutral element for tensor product and composition
   | Ket [Int]        
   | I| X | Y | Z | H | SX 
-  | R QOp RealT  
+  | R QOp RealT
   | C QOp                                 
   | Permute [Int]                                                                 
   | Tensor QOp QOp 

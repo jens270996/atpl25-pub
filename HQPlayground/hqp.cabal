@@ -38,6 +38,11 @@ library core
       HQP.PrettyPrint,
       HQP.PrettyPrint.PrettyOp,
       HQP.PrettyPrint.PrettyMatrix,
+      HQP.ZX.Syntax,
+      HQP.ZX.Convert,
+      HQP.ZX.Simplify,
+      HQP.ZX.MatrixSemantics,
+      HQP.ZX.Tests.Basic,
       Programs.QFT 
 
     build-depends:  
@@ -55,10 +60,19 @@ common exe-common
       hqp:core
   ghc-options: -Wall
 
+Test-Suite Tests
+    import:     warnings, common-options
+    type:       exitcode-stdio-1.0
+    main-is:    HQP/ZX/Tests/Main.hs
+    build-depends: base,
+                   hmatrix,
+                   hqp:core
+    hs-source-dirs: src
+    ghc-options: -Wall
+
 executable NoCloning
   import: exe-common
   main-is: NoCloning.hs
-
 
 executable ProgramInversion
   import: exe-common
@@ -69,4 +83,3 @@ executable YesTeleportation
   build-depends:
     random
   main-is: YesTeleportation.hs
-  
