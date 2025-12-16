@@ -35,12 +35,16 @@ library core
       HQP.QOp.MatrixSemantics,
       HQP.QOp.TensorSemantics,
       HQP.QOp.StabilizerSemantics,
-      HQP.HZX.Syntax,
+      HQP.ZX.Syntax,
+      HQP.ZX.Simplify,
+      HQP.ZX.Convert,
       HQP.PrettyPrint,
       HQP.PrettyPrint.PrettyOp,
       HQP.PrettyPrint.PrettyMatrix,
       Programs.QFT,
-
+    other-modules:
+      HQP.ZX.Utils,
+      HQP.ZX.Counter,
     build-depends:  
         base,
         hmatrix,
