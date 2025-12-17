@@ -6,8 +6,8 @@ import Data.Bits(FiniteBits,countTrailingZeros,shiftL,shiftR)
 -- | Signature of an operator a: C^{2^m} -> C^{2^n} is (m,n) = (op_domain a, op_range a)
 op_qubits :: QOp -> Nat
 op_qubits op = case op of
-    Identity n    -> n
-    C a           -> 1 + op_qubits a
+    Id n    -> n
+    C a     -> 1 + op_qubits a
     Tensor    a b -> op_qubits a + op_qubits b
     DirectSum a b -> let  
       (w_a, w_b) = (op_qubits a, op_qubits b)
@@ -50,3 +50,4 @@ toBits' n k = let
 -- | Integer logarithm base 2 - change to floor{log_2 n} or ceil{log_2 n}.
 ilog2 :: (FiniteBits a, Integral a) => a -> Nat
 ilog2 = countTrailingZeros
+

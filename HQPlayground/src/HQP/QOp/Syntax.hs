@@ -12,7 +12,7 @@ type ComplexT = Complex RealT
     It provides building blocks for building any n-qubit unitary operator. Explanation of constructors is given below.
  -}  
 data QOp -- TODO: Identity n -> Id n
-  = Identity Nat -- Identity n: C^{2^n} -> C^{2^n} is the n-qubit identity operator.
+  = Id Nat -- Identity n: C^{2^n} -> C^{2^n} is the n-qubit identity operator.
                  -- Identity 0: C^1 -> C^1 scalar multiplication by 1, unit for ⊗. 
                  -- Identity 1 = I: C^2 -> C^2
                  -- Identity n is the family of units for ∘.                 
@@ -35,16 +35,16 @@ data Step
 type Program = [Step]
 
 -- | Syntactic sugar patterns
-pattern QOpAt :: Nat -> QOp -> QOp
-pattern QOpAt n op <- Tensor (Identity n) op
-  where QOpAt n op  = Tensor (Identity n) op
+pattern AtQubit :: QOp -> Nat -> QOp
+pattern AtQubit op n <- Tensor (Id n) op
+  where AtQubit op n  = Tensor (Id n) op
 
 pattern One, I :: QOp
-pattern One <- Identity 0
-  where One = Identity 0
+pattern One <- Id 0
+  where One  = Id 0
 
-pattern I <- Identity 1
-  where I = Identity 1
+pattern I <- Id 1
+  where I  = Id 1
 
 -- | TODO: -> HelperFunctions.hs
 floorLog2Word :: Word -> Word
@@ -81,11 +81,19 @@ instance Operator QOp where
   tensorProd = Tensor
   directSum  = DirectSum
   adj        = Adjoint
+  
 
 
 infixr 8 ⊗, <.>
 infixr 7 ⊕, <+>
 infixr 6 ∘, >:
+
+(@>) :: QOp -> Nat -> QOp
+(@>) op n = Tensor op (Id n)
+(<@) n op = AtQubit op n
+(<@) :: Nat -> QOp -> QOp
+
+infixr 5 @>, <@
 
 {-| Explanation of Op constructors:
 

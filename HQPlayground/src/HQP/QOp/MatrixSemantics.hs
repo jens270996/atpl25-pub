@@ -19,7 +19,7 @@ type OpT    = CMat
 -}
 evalOp  :: QOp -> CMat
 evalOp op = case op of
-    Identity n -> ident (2^n)
+    Id n -> ident (2^n)
 
     I -> (2 >< 2) [1,0,
                    0,1]
@@ -60,9 +60,9 @@ evalOp op = case op of
                         in
                             mI `directSum` mop -- |0><0| ⊗ I^n + |1><1| ⊗ op1
 
-    op1 `DirectSum`  op2 -> (evalOp op1) ⊕  (evalOp op2)
-    op1 `Tensor`     op2 -> (evalOp op1) ⊗  (evalOp op2)
-    op1 `Compose`    op2 -> (evalOp op1) <> (evalOp op2) 
+    DirectSum op1 op2 -> (evalOp op1) <+> (evalOp op2)
+    Tensor    op1 op2 -> (evalOp op1)  ⊗  (evalOp op2)
+    Compose   op1 op2 -> (evalOp op1)  ∘  (evalOp op2) 
     Adjoint op1         -> adj $ evalOp op1
 
 
@@ -152,6 +152,7 @@ instance Operator CMat where
     directSum a b = fromBlocks [[a, zeros (rows a) (cols b)],
                                 [zeros (rows b) (cols a), b]]
     adj = tr -- HMatrix confusingly defines conjugate transpose as 'tr' (standard trace notation)
+
 
 
 {-| We implement ket-states as (n >< 1) matrices (= column vectors), and bra-states as (1 >< n) matrices (= row vectors). Thus StateT inherits the operator operations (recall that states
