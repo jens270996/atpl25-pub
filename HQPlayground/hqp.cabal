@@ -11,7 +11,8 @@ build-type:      Simple
 extra-doc-files: CHANGELOG.md
 
 common warnings
-    ghc-options: -Wall -Wno-orphans
+    ghc-options: -Wall -Wno-orphans -Wno-unused-imports
+
 
 common common-options
     default-language: GHC2021    
@@ -63,6 +64,11 @@ executable NoCloning
 executable ProgramInversion
   import: exe-common
   main-is: ProgramInversion.hs
+  ghc-options:
+      -Wno-missing-signatures
+      -Wno-name-shadowing
+      -Wno-incomplete-uni-patterns
+
 
 executable YesTeleportation
   import: exe-common
