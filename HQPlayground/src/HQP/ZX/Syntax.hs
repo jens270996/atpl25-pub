@@ -27,7 +27,13 @@ instance Num Phase where
     negate (Real a) = Real $ negate a
     negate (PiFrac a) = PiFrac $ negate a
 
-data ZXElement = H | Green RealT | Red RealT | Input | Output | I
+data ZXElement
+    = H
+    | Green RealT
+    | Red RealT
+    | Input
+    | Output
+    | I
     deriving (Eq,Show)
 data ZXNode = Node Int ZXElement
     deriving (Eq,Show)
