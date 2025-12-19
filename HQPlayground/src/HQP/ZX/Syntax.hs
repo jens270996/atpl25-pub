@@ -32,7 +32,6 @@ data ZXElement
     | Red Phase
     | Input
     | Output
-    | I
     deriving (Eq,Show)
 data ZXNode = Node Int ZXElement
     deriving (Eq,Show)

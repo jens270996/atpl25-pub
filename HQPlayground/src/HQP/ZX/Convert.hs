@@ -57,4 +57,11 @@ compose a b =
     let g = overlay a b
         inputs = filter isInput $ vertexList g
         outputs = filter isOutput $ vertexList g
-    in foldr (\(i,o) acc -> replaceVertex o (Node (getVertexId i) I) $ replaceVertex i (Node (getVertexId i) I) acc) g (zip inputs outputs)
+    in foldr mergeAndRemoveIOVertices g (zip inputs outputs)
+
+mergeAndRemoveIOVertices :: (ZXNode,ZXNode) -> ZXDiagram -> ZXDiagram
+mergeAndRemoveIOVertices (i,o) g =
+    case (neighbors i acc,neighbors o acc) of
+       [iN,oN] -> overlay (edge iN oN) . removeVertex o . removeVertex i $ g
+       _       -> error "Inputs and Outputs can only have 1 edge."
+        
