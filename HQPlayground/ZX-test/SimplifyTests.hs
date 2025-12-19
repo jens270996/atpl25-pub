@@ -29,7 +29,7 @@ mergeSpiderTests =
                 , Node 5 $ Green pi ])
             @?= (path 
                 [ Node 0 $ Green pi
-                , Node 1 $ Red (4*pi)
+                , Node 1 $ Red 0 -- We are working mod 2pi
                 , Node 5 $ Green pi ]),
         testCase "Merging in distinct regions" $
             mergeReds  (path
@@ -42,7 +42,7 @@ mergeSpiderTests =
                 , Node 6 $ Green pi ])
             @?= (path 
                 [ Node 0 $ Green pi
-                , Node 1 $ Red (2*pi)
+                , Node 1 $ Red 0 -- We are working mod 2pi
                 , Node 3 $ Green pi
                 , Node 4 $ Red pi
                 , Node 6 $ Green pi ])

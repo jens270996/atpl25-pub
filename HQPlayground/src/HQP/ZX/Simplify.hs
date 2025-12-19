@@ -3,6 +3,7 @@ import HQP.ZX.Syntax
 import HQP.ZX.Utils
 import Algebra.Graph.Undirected
 import Data.List
+import Data.Fixed (mod')
 
 mergeReds :: ZXDiagram -> ZXDiagram
 mergeReds g =
@@ -13,10 +14,9 @@ mergeRedsRec :: [ZXNode] -> ZXDiagram -> ZXDiagram
 mergeRedsRec [] g = g
 mergeRedsRec (redSpider:redSpiders) g =
     case partition (\ x -> hasEdge redSpider x g) redSpiders of
-        ([],nonAdjacentReds) -> mergeRedsRec nonAdjacentReds g
         (redNeighbors,nonAdjacentReds) ->
             let verticesToMerge = redSpider : redNeighbors
-                newPhase = sum $ map (getPhase . getElement) verticesToMerge
+                newPhase = sum (map (getPhase . getElement) verticesToMerge) `mod'` (2 * pi)
                 (Node nid _) = redSpider
                 newSpider = Node nid (Red newPhase)
                 newGraph = removeEdge newSpider newSpider $ mergeVertices (`elem` verticesToMerge) newSpider g
