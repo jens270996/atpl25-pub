@@ -16,7 +16,7 @@ mergeRedsRec (redSpider:redSpiders) g =
         ([],nonAdjacentReds) -> mergeRedsRec nonAdjacentReds g
         (redNeighbors,nonAdjacentReds) ->
             let verticesToMerge = redSpider : redNeighbors
-                newPhase = sum $ map (getPhase . getElement) verticesToMerge
+                newPhase = sum (map (getPhase . getElement) verticesToMerge)
                 (Node nid _) = redSpider
                 newSpider = Node nid (Red newPhase)
                 newGraph = removeEdge newSpider newSpider $ mergeVertices (`elem` verticesToMerge) newSpider g
