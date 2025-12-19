@@ -3,7 +3,7 @@ import HQP
 
 -- | Quantum Fourier Transform on n qubits with MSB input and MSB output.
 qft :: Int -> QOp
-qft n =  qftrev n ∘ Permute [n-1, n-2 .. 0] 
+qft n = Permute [n-1, n-2 .. 0] ∘ qftrev n 
 
 -- | QFT with LSB input and MSB output (reverse order)
 qftrev :: Int -> QOp
