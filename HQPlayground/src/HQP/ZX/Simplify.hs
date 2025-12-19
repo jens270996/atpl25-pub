@@ -14,6 +14,7 @@ mergeRedsRec :: [ZXNode] -> ZXDiagram -> ZXDiagram
 mergeRedsRec [] g = g
 mergeRedsRec (redSpider:redSpiders) g =
     case partition (\ x -> hasEdge redSpider x g) redSpiders of
+        ([],nonAdjacentReds) -> mergeRedsRec nonAdjacentReds g
         (redNeighbors,nonAdjacentReds) ->
             let verticesToMerge = redSpider : redNeighbors
                 newPhase = sum (map (getPhase . getElement) verticesToMerge) `mod'` (2 * pi)
