@@ -12,7 +12,6 @@ data ZXElement
     | Red RealT
     | Input
     | Output
-    | I
     deriving (Eq,Show)
 data ZXNode = Node Int ZXElement
     deriving (Eq,Show)
