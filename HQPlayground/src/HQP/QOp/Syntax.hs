@@ -11,11 +11,12 @@ type ComplexT = Complex RealT
     The Op type is a symbolic unitary operator, now extended with bra/ket-states, which just builds an abstract syntax tree (AST).
     It provides building blocks for building any n-qubit unitary operator. Explanation of constructors is given below.
  -}  
-data QOp -- TODO: Identity n -> Id n
+data QOp 
   = Id Nat -- Identity n: C^{2^n} -> C^{2^n} is the n-qubit identity operator.
                  -- Identity 0: C^1 -> C^1 scalar multiplication by 1, unit for ⊗. 
                  -- Identity 1 = I: C^2 -> C^2
                  -- Identity n is the family of units for ∘.                 
+  | Phase Rational -- Global phase e^{i π θ} (scalar multiplication)
   | X | Y | Z | H | SX
   | R QOp Rational  -- Rotation around (possibly multi-qubit) axis defined by QOp by angle (in units of π)
   | C QOp           -- Controlled (possibly multi-qubit) operator

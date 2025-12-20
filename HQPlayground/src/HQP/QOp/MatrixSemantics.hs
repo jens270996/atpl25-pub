@@ -21,6 +21,9 @@ evalOp  :: QOp -> CMat
 evalOp op = case op of
     Id n -> ident (2^n)
 
+    Phase q -> let theta = (realToFrac q * pi) :+ 0 
+               in  scalar (exp (ii*theta))
+
     I -> (2 >< 2) [1,0,
                    0,1]
 

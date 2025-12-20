@@ -11,8 +11,8 @@ showOp op = case op of
     Adjoint a       -> "(adj " ++ showOp a ++ ")"
     Id 0     -> "One"
     Id 1     -> "I"
-    _               -> show op
-
+    _        -> show op
+    
 showStep :: Step -> String
 showStep (Measure ks) = "Measure " ++ show ks
 showStep (Unitary op) = "Unitary $ " ++ showOp op

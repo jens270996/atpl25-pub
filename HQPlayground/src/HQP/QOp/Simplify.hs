@@ -7,6 +7,7 @@ import Data.Function (fix)
 cleanOnes :: QOp -> QOp
 cleanOnes op = case op of
     -- Simplification rules
+    Phase 0       -> Id 0
     C (Id n)      -> Id (n+1)
     R (Id n) _    -> Id n -- TODO: Include phases: C and <+> can make them relative
     Tensor    (Id m) (Id n) -> Id (m+n)
@@ -40,6 +41,7 @@ cleanAdjoints op = case op of
     Adjoint Y                 -> Y
     Adjoint Z                 -> Z
     Adjoint H                 -> H
+    Adjoint (Phase theta)     -> Phase (-theta)
     Adjoint (R a theta)       -> R (cleanAdjoints a) (-theta)
     Adjoint (C a)             -> C (cleanAdjoints (Adjoint a))
     Adjoint (Adjoint a)       -> cleanAdjoints a
