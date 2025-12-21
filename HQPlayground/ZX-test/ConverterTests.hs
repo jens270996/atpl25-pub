@@ -54,10 +54,10 @@ tests =
             testCase "CNOT" $
                 convert (QOp.C QOp.X)
                 @?= ( edges
-                    [ (Node 0 Input, Node 2 (Green 0))
-                    , (Node 1 Input, Node 3 (Red 0))
-                    , (Node 2 (Green 0), Node 3 (Red 0))
-                    , (Node 2 (Green 0), Node 4 Output)
-                    , (Node 3 (Red 0), Node 5 Output)
+                    [ (Node 0 Input, Node 2 (Green $ PiHalves 0))
+                    , (Node 1 Input, Node 3 (Red $ PiHalves 0))
+                    , (Node 2 (Green $ PiHalves 0), Node 3 (Red $ PiHalves 0))
+                    , (Node 2 (Green $ PiHalves 0), Node 4 Output)
+                    , (Node 3 (Red $ PiHalves 0), Node 5 Output)
                     ])
         ]

@@ -38,7 +38,7 @@ mergeSpiderTests =
                 , Node 6 $ Green $ PiHalves 2 ])
             @?= (path 
                 [ Node 0 $ Green $ PiHalves 2
-                , Node 1 $ Red 0
+                , Node 1 $ Red $ PiHalves 0
                 , Node 3 $ Green $ PiHalves 2
                 , Node 4 $ Red $ PiHalves 2
                 , Node 6 $ Green $ PiHalves 2 ]),
@@ -61,7 +61,7 @@ removeSimpleSpiderTests =
         testCase "Removing single zero phase simple spider" $
             removeSimpleSpiders  (path
                 [ Node 0 $ Green $ PiHalves 2
-                , Node 1 $ Red 0
+                , Node 1 $ Red $ PiHalves 0
                 , Node 2 $ Green $ PiHalves 2 ])
             @?= (path 
                 [ Node 0 $ Green $ PiHalves 2
@@ -69,8 +69,8 @@ removeSimpleSpiderTests =
         testCase "Removing multiple zero phase simple spiders" $
             removeSimpleSpiders  (path
                 [ Node 0 $ Green $ PiHalves 2
-                , Node 1 $ Red 0
-                , Node 2 $ Green 0])
+                , Node 1 $ Red $ PiHalves 0
+                , Node 2 $ Green $ PiHalves 0])
             @?= (path 
                 [ Node 0 $ Green $ PiHalves 2 ])
     ]
