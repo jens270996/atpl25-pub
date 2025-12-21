@@ -38,6 +38,7 @@ library core
       HQP.ZX.Syntax,
       HQP.ZX.Simplify,
       HQP.ZX.Convert,
+      HQP.ZX.Visualize,
       HQP.PrettyPrint,
       HQP.PrettyPrint.PrettyOp,
       HQP.PrettyPrint.PrettyMatrix,
