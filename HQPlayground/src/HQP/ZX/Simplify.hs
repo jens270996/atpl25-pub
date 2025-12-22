@@ -21,7 +21,7 @@ removeSimpleSpiders :: ZXDiagram -> ZXDiagram
 removeSimpleSpiders graph = foldv helper graph
   where
     helper node graph'
-        | Just 0 <- asPhase node
+        | Just (PiHalves 0) <- asPhase node
         , neighbor : ns <- getNeighbors node graph'
         , length ns <= 1
         = replaceVertex node neighbor $ removeEdge node neighbor graph'

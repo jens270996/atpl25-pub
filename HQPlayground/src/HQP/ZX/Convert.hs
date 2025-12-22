@@ -26,11 +26,11 @@ fromQOp op = case op of
                           c4 <- generateVertexId
                           c5 <- generateVertexId
                           c6 <- generateVertexId
-                          return $ edges [(Node c1 Input,Node c3 (Green 0))
-                                         ,(Node c2 Input,Node c4 (Red 0))
-                                         ,(Node c3 (Green 0),Node c4 (Red 0))
-                                         ,(Node c3 (Green 0),Node c5 Output)
-                                         ,(Node c4 (Red 0),Node c6 Output)]
+                          return $ edges [(Node c1 Input,Node c3 (Green (PiHalves 0)))
+                                         ,(Node c2 Input,Node c4 (Red (PiHalves 0)))
+                                         ,(Node c3 (Green (PiHalves 0)),Node c4 (Red (PiHalves 0)))
+                                         ,(Node c3 (Green (PiHalves 0)),Node c5 Output)
+                                         ,(Node c4 (Red (PiHalves 0)),Node c6 Output)]
     QOp.Tensor a b -> do g <- fromQOp a
                          g' <- fromQOp b
                          return $  overlay g g'
