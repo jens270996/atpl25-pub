@@ -87,7 +87,7 @@ test-suite ZX-test
 
     -- Test dependencies.
     build-depends:
-        base ^>=4.21.0.0,
+        base ^>=4.18.3.0,
         hqp:core,
         tasty,
         tasty-hunit,
