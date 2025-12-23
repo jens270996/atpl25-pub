@@ -58,14 +58,15 @@ getElementsWhere g pred = filter pred . map getElement $ vertexList g
 
 
 -- Instead :: Find shortest path from input to output.
--- Idea :: Always pick neighbor with highest id greater than own??
+-- Idea :: Always pick neighbor with largest id??
+-- TODO :: More robust solution?? Can we impose some ordering on the graph?
 iOPath :: [(ZXNode,ZXNode)] -> ZXNode -> ZXNode -> [ZXNode]
 iOPath es i o = iOPathRec es (getVertexId i) (getVertexId o) [i]
 
 iOPathRec :: [(ZXNode,ZXNode)] -> Int -> Int -> [ZXNode] -> [ZXNode]
 iOPathRec _ cid did path | cid == did = reverse path
 iOPathRec es cid did path =
-    let next = maximum . map snd . filter (\(Node id' _, Node id'' _) -> id' == cid && id'' > cid) $ es
+    let next = maximum . map snd . filter (\(Node id' _, Node id'' _) -> id' == cid) $ es
     in  iOPathRec es (getVertexId next) did (next:path)
 -- Use arrow to connect
 visualizeEdges :: [(ZXNode,ZXNode)] -> Diagram B -> Diagram B
