@@ -4,32 +4,31 @@ import HQP.ZX.Syntax
 import Algebra.Graph.Undirected
 import Diagrams.Backend.SVG.CmdLine
 import HQP.ZX.Utils
+import Data.List
 
 
 visualizeDiagram :: ZXDiagram -> Diagram B
 visualizeDiagram g =
     let
-        vs = vertexList g
         es = edgeList g
-        is = filter isInput $ vs
-        os = filter isOutput $ vs
-        ios = zip is os
-    in visualizeVertices vs ios <> visualizeEdges es
+        is = filter isInput $ vertexList g
+        os = filter isOutput $ vertexList g
+    in visualizeVertices es (zip is os) # visualizeEdges es
     -- zip IO pairs
     -- for each pair create horizontal line of all nodes in between
     -- finally addEdges
 
 
-visualizeVetrices :: [ZXNode] -> [(ZXNode,ZXNode)] -> Diagram B
-visualizeVertices vs ios =
-    vsep 2 $ map (\(i,o) -> visualizeLine $ getNodesBetweenIO vs i o) ios
+visualizeVertices ::  [(ZXNode,ZXNode)] -> [(ZXNode,ZXNode)] -> Diagram B
+visualizeVertices es ios =
+    vsep 2 $ map (\(i,o) -> visualizeLine $ iOPath es i o) ios
 
 
 visualizeLine :: [ZXNode] -> Diagram B
 visualizeLine ns = hsep 5 . map visualizeNode $ ns
 
 visualizeNode :: ZXNode -> Diagram B
-visualizeNode (id,e) = visualizeElement e # named (show id)
+visualizeNode (Node id e) = visualizeElement e # named (show id)
 
 visualizeElement :: ZXElement -> Diagram B
 visualizeElement H = square 0.4 # fc yellow 
@@ -57,16 +56,22 @@ getOutputs g = getElementsWhere g (Output==)
 getElementsWhere :: ZXDiagram -> (ZXElement -> Bool) -> [ZXElement]
 getElementsWhere g pred = filter pred . map getElement $ vertexList g 
 
-getNodesBetweenIO :: [ZXNode] -> ZXNode -> ZXNode -> [ZXNode]
-getNodesBetweenIO vs (iid,Input) (oid,Output) = filter (\(id,n) -> id >= iid && id <= oid) vs
 
+-- Instead :: Find shortest path from input to output.
+-- Idea :: Always pick neighbor with highest id greater than own??
+iOPath :: [(ZXNode,ZXNode)] -> ZXNode -> ZXNode -> [ZXNode]
+iOPath es i o = iOPathRec es (getVertexId i) (getVertexId o) [i]
 
+iOPathRec :: [(ZXNode,ZXNode)] -> Int -> Int -> [ZXNode] -> [ZXNode]
+iOPathRec _ cid did path | cid == did = reverse path
+iOPathRec es cid did path =
+    let next = maximum . map snd . filter (\(Node id' _, Node id'' _) -> id' == cid && id'' > cid) $ es
+    in  iOPathRec es (getVertexId next) did (next:path)
 -- Use arrow to connect
-visualizeEdges :: [(ZXNode,ZXNode)] -> Diagram B
-visualizeEdges = mconcat visualizeEdge
+visualizeEdges :: [(ZXNode,ZXNode)] -> Diagram B -> Diagram B
+visualizeEdges es d = foldr visualizeEdge d es
 
 
-visualizeEdge :: (ZXNode,ZXNode) -> Diagram B
-visualizeEdge ((id,_),(id',_)) = (with & arrowTail .~ noTail & lengths .~ large
-                 & arrowHead .~ noHead
-                 & shaftStyle %~ lw veryThick ) (show id) (show id')
+visualizeEdge :: (ZXNode,ZXNode) -> (Diagram B -> Diagram B)
+visualizeEdge ((Node id1 _),(Node id2 _)) = (\d -> d # connectOutside' (with & arrowTail .~ noTail & lengths .~ large
+                 & arrowHead .~ noHead) (show id1) (show id2))

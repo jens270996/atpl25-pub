@@ -51,7 +51,9 @@ library core
         hmatrix,
         random,
         mtl,
-        algebraic-graphs
+        algebraic-graphs,
+        diagrams-svg,
+        diagrams-lib
     hs-source-dirs:   src
 
 common exe-common
@@ -59,7 +61,8 @@ common exe-common
   build-depends:
       base,
       hmatrix,
-      hqp:core
+      hqp:core,
+      diagrams-svg
   ghc-options: -Wall
 
 test-suite ZX-test
@@ -91,14 +94,15 @@ test-suite ZX-test
         tasty,
         tasty-hunit,
         algebraic-graphs
--- executable NoCloning
---   import: exe-common
---   main-is: NoCloning.hs
+
+executable Visualize
+  import: exe-common
+  main-is: Visualize.hs
 
 
--- executable ProgramInversion
---   import: exe-common
---   main-is: ProgramInversion.hs
+executable Convert
+  import: exe-common
+  main-is: Convert.hs
 
 -- executable YesTeleportation
 --   import: exe-common
