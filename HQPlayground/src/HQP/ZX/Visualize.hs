@@ -17,6 +17,7 @@ visualizeDiagram g =
 
 visualizeVertices ::  [(ZXNode,ZXNode)] -> [(ZXNode,ZXNode)] -> Diagram B
 visualizeVertices es ios =
+    -- TODO: filter out nodes already used on a path, so we do not display a node twice.
     vsep 2 $ map (\(i,o) -> visualizeLine $ iOPath es i o) ios
 
 
