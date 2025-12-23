@@ -14,10 +14,6 @@ visualizeDiagram g =
         is = filter isInput $ vertexList g
         os = filter isOutput $ vertexList g
     in visualizeVertices es (zip is os) # visualizeEdges es
-    -- zip IO pairs
-    -- for each pair create horizontal line of all nodes in between
-    -- finally addEdges
-
 
 visualizeVertices ::  [(ZXNode,ZXNode)] -> [(ZXNode,ZXNode)] -> Diagram B
 visualizeVertices es ios =
