@@ -23,7 +23,8 @@ common common-options
         TypeFamilies,
         TypeSynonymInstances,
         BinaryLiterals,
-        PatternSynonyms
+        PatternSynonyms,
+	ViewPatterns
 
 library core
     import:   warnings, common-options
@@ -39,13 +40,16 @@ library core
       HQP.PrettyPrint,
       HQP.PrettyPrint.PrettyOp,
       HQP.PrettyPrint.PrettyMatrix,
-      Programs.QFT 
+      Programs.QFT,
+      Programs.QuantumAdder
 
     build-depends:  
         base,
         hmatrix,
         random,
-        mtl
+        mtl,
+    	vector-sized,
+    	finite-typelits
     hs-source-dirs:   src
 
 common exe-common

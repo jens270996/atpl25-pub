@@ -30,9 +30,6 @@ evalOp op = case op of
     X -> (2 >< 2) [0,1,
                    1,0]
 
-    SX -> (2 >< 2) [1:+  1,  1:+(-1),
-                    1:+(-1),1:+  1]/2
-
     Y -> (2 >< 2) [-ii, 0,
                     0, ii]
 
@@ -94,12 +91,14 @@ To deal with random measurements in a pure functional setting, we treat a random
 We take a random number generator as the first parameter, read off the first element, and return
 the remainder together with the updated quantum state.
 -} 
-evalStep :: Step -> StateT -> RNG -> (StateT,RNG)
-evalStep _ _ [] = error "No more random numbers. This never happens."
+type Outcomes = [Bool] -- Measurement outcomes as list of bits - latest outcome first
 
-evalStep step state (r:rng)   = case step of
-    Unitary op   -> ((evalOp op) <> state, r:rng)
-    Measure []   -> (state, r:rng)
+evalStep :: Step -> StateT -> Outcomes -> RNG -> (StateT, Outcomes, RNG)
+evalStep _ _ _ [] = error "No more random numbers. This never happens."
+
+evalStep step state outcomes (r:rng)   = case step of
+    Unitary op   -> ((evalOp op) <> state, outcomes, r:rng)
+    Measure []   -> (state, outcomes, r:rng)
     Measure (k:ks) -> let
         n = ilog2 (rows state)        
         proj0 = measureProjection n k 0
@@ -110,22 +109,25 @@ evalStep step state (r:rng)   = case step of
 
         prob0 = realPart $ inner state s0
         prob1 = realPart $ inner state s1
-                    
-        collapsed_state = normalize $ if(r<prob0) then s0 else s1
+        
+        outcome = if (r < prob0) then False else True
+        collapsed_state = normalize $ if(outcome) then s1 else s0
+
         in
             if (abs(prob1+prob0-1)>tol) then
                 error $ "Probabilities don't sum to 1: " ++ (show (prob0,prob1))
             else
-                evalStep (Measure ks) collapsed_state rng
+                evalStep (Measure ks) collapsed_state  (outcome : outcomes) rng
+
 
 
 {-| 'evalProg steps psi0 rng' evaluates a quantum program (a list of steps) on an initial state psi0, using the random number generator rng for measurements. It returns the final state and the remaining RNG. -}
-evalProg :: [Step] -> StateT -> RNG -> (StateT, RNG)
+evalProg :: [Step] -> StateT -> RNG -> (StateT, Outcomes, RNG)
 evalProg steps psi0 rng  =
-  foldl apply_step (psi0, rng) steps
+  foldl apply_step (psi0, [], rng) steps
   where
-    apply_step :: (StateT, RNG) -> Step -> (StateT, RNG)
-    apply_step (psi, rng') step = evalStep step psi rng'
+    apply_step :: (StateT, Outcomes, RNG) -> Step -> (StateT, Outcomes, RNG) -- TODO: Redefine top-level evalStep like this
+    apply_step (psi, outcomes, rng') step = evalStep step psi outcomes rng'
 
 
 {-| We define a HilbertSpace typeclass, which we will use for states.
