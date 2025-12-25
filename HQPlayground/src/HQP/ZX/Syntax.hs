@@ -7,7 +7,7 @@ type RealT = Double  -- Can be replaced by e.g. exact fractions or constructive 
 type ComplexT = Complex RealT
 
 data Phase = Real RealT | PiHalves Int
-    deriving (Eq,Show)
+    deriving (Eq)
 
 instance Num Phase where
     (+) (Real a) (Real b) = Real $ a+b -- Optionally add mod 2pi to all real cases?? May loose even more precision?
@@ -27,6 +27,10 @@ instance Num Phase where
     negate (Real a) = Real $ negate a
     negate (PiHalves a) = PiHalves $ negate a
 
+instance Show Phase where
+    show (PiHalves 2) = "π"
+    show (PiHalves a) = if a `mod` 2 == 0 then show (a `div` 2)++" π" else show a ++ "/2 π"
+    show (Real a) = show a
 data ZXElement
     = H
     | Green Phase
