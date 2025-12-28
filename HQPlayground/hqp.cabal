@@ -24,7 +24,7 @@ common common-options
         TypeSynonymInstances,
         BinaryLiterals,
         PatternSynonyms,
-	ViewPatterns
+	      ViewPatterns
 
 library core
     import:   warnings, common-options
@@ -74,10 +74,19 @@ executable ProgramInversion
       -Wno-name-shadowing
       -Wno-incomplete-uni-patterns
 
-
 executable YesTeleportation
   import: exe-common
   build-depends:
     random
   main-is: YesTeleportation.hs
-  
+
+executable TestRepeater
+  import: exe-common
+  main-is: TestRepeater.hs
+  build-depends:
+    random
+  ghc-options:
+      -Wno-missing-signatures
+      -Wno-name-shadowing
+      -Wno-incomplete-uni-patterns
+

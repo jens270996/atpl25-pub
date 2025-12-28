@@ -3,7 +3,9 @@ module Main where
 import HQP
 import HQP.QOp.MatrixSemantics as MS
 import System.Random(mkStdGen, randoms)
-import Program.RepeaterProtocol(repeater, teleport)
+import Numeric.LinearAlgebra
+import Programs.RepeaterProtocol(repeater, teleport)
+
 
 -- | Extend a program to act on k additional qubits 
 extendprogram :: Program -> Int -> Program
@@ -16,7 +18,7 @@ main :: IO()
 main = do    
     let rng0 = randoms (mkStdGen 42) :: [Double]    
 
-    let m = 4  -- number of message qubits to teleport
+    let m = 1  -- number of message qubits to teleport
         l = 3  -- number of links between source and target nodes
         n = 2*l -- total chain qubits        
     
@@ -25,8 +27,11 @@ main = do
         {-| Very secret message consisting of 2^m complex amplitudes.
             We use 1,2,...,2^m as an example message, we can transmit
             any m-qubit quantum state. -}
-        message' = (2^m >< 1) [1..2^m] :: CMat 
-        message = message' / (norm_2 message')
+        a i = 2*i 
+        b i = 2*i + 1
+        t l = b (l-1)
+
+        message = MS.normalize $ ((2^m) >< 1) [c :+ 0 | c <- [1..2^m]] :: CMat         
 
         prog = foldr (++) [] $ [
                 extendprogram (repeater l) m ++ 
