@@ -39,7 +39,7 @@ Long-form explanation is given at the end of this file, below the code.
 --                        ∘ (∏_{i=0}^{L-1} (CX_{a_i→b_i} ∘ H_{a_i}))
 --   3) Measure  M      = [b_0..b_{L-2}] ++ [a_1..a_{L-1}]
 --   4) Unitary  U_corr = ∏_{i=1}^{L-1} (CX_{a_i→t} ∘ CZ_{b_{i-1}→t})
-bellAt        n a b     = cxAt n a b ∘ hAt n a
+bellAt        n a b   = cxAt n a b ∘ hAt n a
 bellTransform n b1 a2 = hAt n b1 ∘ cxAt n b1 a2
 
 repeater :: Int -> Program
@@ -90,11 +90,13 @@ t l = b (l-1)
 bringToFront :: Int -> [Int] -> [Int]
 bringToFront n front = front ++ filter (`notElem` front) [0..n-1]
 
+
 embed :: Int -> [Int] -> QOp -> QOp
 embed n ws u =
   let p   = bringToFront n ws
       k   = length ws
   in (adj $ Permute p) ∘ (u ⊗ Id (n-k)) ∘ Permute p
+
 
 at1 :: Int -> Int -> QOp -> QOp
 at1 n i g = embed n [i] g
@@ -102,13 +104,16 @@ at1 n i g = embed n [i] g
 at2 :: Int -> Int -> Int -> QOp -> QOp
 at2 n i j g = embed n [i,j] g
 
+
 hAt :: Int -> Int -> QOp
-hAt n i = at1 n i H
+hAt n i = Id (i-1) ⊗ H ⊗ Id (n-i-1)
 
 cxAt :: Int -> Int -> Int -> QOp
+--cxAt n s t = Id s ⊗ C (Id (t-s+1) ⊗ X) ⊗ Id (n-t-1)
 cxAt n c x = at2 n c x (C X)
 
 czAt :: Int -> Int -> Int -> QOp
+--czAt n s t = Id s ⊗ C (Id (t-s+1) ⊗ Z) ⊗ Id (n-t-1)
 czAt n c z = at2 n c z (C Z)
 
 {-

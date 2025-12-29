@@ -8,10 +8,13 @@ import Programs.RepeaterProtocol(repeater, teleport)
 
 
 -- | Extend a program to act on k additional qubits 
-extendprogram :: Program -> Int -> Program
-extendprogram prog k = map extendop prog
+extendprogram ::  Int -> Program -> Program  
+extendprogram new_n prog = map extendop prog
   where
-    extendop (Unitary u) = Unitary (u ⊗ Id k)
+    extendop (Unitary u) = let 
+        n = op_qubits u
+        d = new_n - n
+     in Unitary (u ⊗ Id d)
     extendop (Measure ms) = Measure ms
 
 main :: IO()
@@ -19,7 +22,7 @@ main = do
     let rng0 = randoms (mkStdGen 42) :: [Double]    
 
     let m = 1  -- number of message qubits to teleport
-        l = 3  -- number of links between source and target nodes
+        l = 2  -- number of links between source and target nodes
         n = 2*l -- total chain qubits        
     
     -- | m-qubit quantum state to teleport 
@@ -33,17 +36,21 @@ main = do
 
         message = MS.normalize $ ((2^m) >< 1) [c :+ 0 | c <- [1..2^m]] :: CMat         
 
-        prog = foldr (++) [] $ [
-                extendprogram (repeater l) m ++ 
-                teleport (n+4) (n+i) (a 0) (t l) | i <- [1..4]
-            ]            
+        prog = extendprogram (n+m) $ foldr (++) [] [
+                repeater l ++ 
+                teleport (n+m) (n+i) (a 0) (t l) 
+                | i <- [0..m-1] ]            
+        
 
-    putStr $ "|ψ> = "++(showState message) ++ "\n"
+
+    putStr $ "|ψ_m> = "++(showState message) ++ "\n"
     putStr $ "\nRepeater + Teleportation program:\n" ++ showProgram prog ++ "\n\n"
+
+    putStr $ "\nProgram qubits: " ++ show (map step_qubits prog) ++ "\n\n"
 
     let psi = ket (replicate n 0) ⊗ message -- initial all-zero state and teleport message
 
-    putStr $ "|ψ> = "++(showState psi) ++ "\nRunning repeater + teleportation program!\n"
+    putStr $ "|ψ_0 ⊗ ψ_m> = "++(showState psi) ++ "\nRunning repeater + teleportation program!\n"
 
     let (end_state,outcomes,_) = evalProg prog psi rng0
 
