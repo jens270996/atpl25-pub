@@ -3,9 +3,11 @@
 module HQP.QOp.MatrixSemantics where
 
 import HQP.QOp.Syntax
+import HQP.PrettyPrint.PrettyOp
 import HQP.QOp.HelperFunctions
 import Numeric.LinearAlgebra hiding(normalize,step,(<>)) -- the hmatrix library
 import Data.Bits(shiftL)
+import Debug.Trace(trace)
 
 type CMat = Matrix ComplexT
 type RMat = Matrix RealT
@@ -60,11 +62,12 @@ evalOp op = case op of
                             mop = evalOp op1
                             mI  = ident (rows mop)
                         in
-                            mI `directSum` mop -- |0><0| ⊗ I^n + |1><1| ⊗ op1
+                            mI <+> mop -- |0><0| ⊗ I^n + |1><1| ⊗ op1
 
     DirectSum op1 op2 -> (evalOp op1) <+> (evalOp op2)
     Tensor    op1 op2 -> (evalOp op1)  ⊗  (evalOp op2)
-    Compose   op1 op2 -> (evalOp op1)  ∘  (evalOp op2) 
+    Compose   op1 op2 -> --trace (showOp op1 ++ " compose " ++ showOp op2) $ 
+                         (evalOp op1)  ∘  (evalOp op2) 
     Adjoint op1         -> adj $ evalOp op1
 
 

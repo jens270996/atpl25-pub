@@ -7,7 +7,7 @@ showOp op = case op of
     C a             -> "C ("++ showOp a ++ ")"
     a `Tensor`    b -> "(" ++ showOp a ++ " ⊗ " ++ showOp b ++ ")"
     a `DirectSum` b -> "(" ++ showOp a ++ " ⊕ "  ++ showOp b ++ ")"
-    a `Compose`   b -> "(" ++ showOp a ++ " <> " ++ showOp b ++ ")"
+    a `Compose`   b -> "(" ++ showOp a ++ " ∘ " ++ showOp b ++ ")"
     Adjoint a       -> "(adj " ++ showOp a ++ ")"
     Id 0     -> "One"
     Id 1     -> "I"

@@ -1,5 +1,6 @@
 module Programs.RepeaterProtocol (repeater, teleport) where
 import HQP
+import Debug.Trace(trace)
 
 
 {-
@@ -106,16 +107,23 @@ at2 n i j g = embed n [i,j] g
 
 
 hAt :: Int -> Int -> QOp
-hAt n i = Id (i-1) ⊗ H ⊗ Id (n-i-1)
+hAt n i = Id i ⊗ H ⊗ Id (n-i-1)
+
+cAt :: Int -> QOp  -> Int -> Int -> QOp
+cAt n op s t = let 
+  (c,x,hh) = if s < t then (s,t,Id n) 
+             else (t,s,hAt n s ∘ hAt n t)  -- swap control and target by conjugating with H
+  
+  res = hh ∘ Id c ⊗ C (Id (x-c-1) ⊗ op) ⊗ Id (n-x-1) ∘ hh
+  in
+    --trace ("cAt " ++ show n ++ " " ++ show s ++ " " ++ show t ++ " = " ++ showOp res) 
+    res
 
 cxAt :: Int -> Int -> Int -> QOp
---cxAt n s t = Id s ⊗ C (Id (t-s+1) ⊗ X) ⊗ Id (n-t-1)
-cxAt n c x = at2 n c x (C X)
+cxAt n s t = cAt n X s t
 
 czAt :: Int -> Int -> Int -> QOp
---czAt n s t = Id s ⊗ C (Id (t-s+1) ⊗ Z) ⊗ Id (n-t-1)
-czAt n c z = at2 n c z (C Z)
-
+czAt n s t = cAt n Z s t
 {-
 Bell measurement transfers entanglement |Φ>_{AB}, |Φ>_{CD}  -->  |Φ>_{AD}
 ---------------------------------------------------------------------

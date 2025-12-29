@@ -83,9 +83,13 @@ executable YesTeleportation
 executable TestRepeater
   import: exe-common
   main-is: TestRepeater.hs
+  profiling: True
+  library-profiling: True
+  executable-profiling: True
   build-depends:
     random
   ghc-options:
+      -fprof-auto -rtsopts -with-rtsopts=-xc
       -Wno-missing-signatures
       -Wno-name-shadowing
       -Wno-incomplete-uni-patterns

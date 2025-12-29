@@ -14,7 +14,7 @@ extendprogram new_n prog = map extendop prog
     extendop (Unitary u) = let 
         n = op_qubits u
         d = new_n - n
-     in Unitary (u ⊗ Id d)
+     in Unitary $ cleanop (u ⊗ Id d)
     extendop (Measure ms) = Measure ms
 
 main :: IO()
@@ -35,7 +35,7 @@ main = do
         t l = b (l-1)
 
         message' = ((2^m) >< 1) [c :+ 0 | c <- [1..2^m]] :: CMat         
-        norm = (sqrt . norm_2) message' :+ 0
+        norm    = norm_2 message' :+ 0
         message = (1 / norm) .* message'  -- normalize the message state
 
         prog = extendprogram (n+m) $ foldr (++) [] [
@@ -55,6 +55,7 @@ main = do
 
     putStr $ "|ψ_0 ⊗ ψ_m> = "++(showState psi) ++ "\nRunning repeater + teleportation program!\n"
     putStr $ "State qubits: " ++ show (ilog2 (rows psi)) ++ "\n\n"
+    putStr $ "State norm: " ++ show (norm_2 psi) ++ "\n\n"
 
     let (end_state,outcomes,_) = evalProg prog psi rng0
 

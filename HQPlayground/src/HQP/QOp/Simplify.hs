@@ -190,5 +190,6 @@ simplifyFixpoint :: Eq o => Int -> [o -> o] -> o -> o
 simplifyFixpoint n rewriterules op = fixpoint n (simplifyPass rewriterules) op  
 
 
-
+cleanop :: QOp -> QOp
+cleanop = simplifyFixpoint 10000 [cleanOnes, cleanAdjoints, liftComposes,doComposes, pushComposes]
 
