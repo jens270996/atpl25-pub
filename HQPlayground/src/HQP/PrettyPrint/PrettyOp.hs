@@ -14,8 +14,8 @@ showOp op = case op of
     _        -> show op
     
 showStep :: Step -> String
-showStep (Measure ks) = "Measure " ++ show ks
 showStep (Unitary op) = "Unitary $ " ++ showOp op
+showStep step = show step
 
 showProgram :: Program -> String
 showProgram steps = intercalate "\n" [ "step" ++ show i ++ " = " ++ (showStep step)

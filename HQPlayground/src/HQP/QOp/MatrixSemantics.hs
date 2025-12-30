@@ -66,7 +66,7 @@ evalOp op = case op of
 
     DirectSum op1 op2 -> (evalOp op1) <+> (evalOp op2)
     Tensor    op1 op2 -> (evalOp op1)  ⊗  (evalOp op2)
-    Compose   op1 op2 -> --trace (showOp op1 ++ " compose " ++ showOp op2) $ 
+    Compose   op1 op2 -> trace (showOp op1 ++ " compose " ++ showOp op2) $ 
                          (evalOp op1)  ∘  (evalOp op2) 
     Adjoint op1         -> adj $ evalOp op1
 
@@ -120,10 +120,20 @@ measure1 n (state, outcomes, (r:rng)) k = let
             (collapsed_state, outcome:outcomes, rng)
 
 evalStep :: (StateT, Outcomes, RNG) -> Step -> (StateT, Outcomes, RNG)
-evalStep (state, outcomes, rng) step = case step of
+evalStep (state, outcomes, rng) step = trace("evalStep"++ show step) $ case step of
     Unitary op -> ((evalOp op) <> state, outcomes, rng)
     Measure ks -> let n = ilog2 (rows state) in 
         foldl (measure1 n) (state, outcomes, rng) ks
+    Initialize qs vs -> let
+        n = rows state        
+        (st,os,rng') = evalStep (state,[],rng) $ Measure qs 
+        correction = foldr (∘) (Id n) $ map (\(o,v) -> if (o/=v) then X else I) (zip os vs)
+        in
+            trace("vs = " ++ show vs)
+            trace("os = " ++ show os)
+            trace("correction = " ++ showOp correction)
+            -- return outcomes for explicit measurements, so evalStep on input outcomes
+            evalStep (st,outcomes,rng') (Unitary correction)
 
 {-| 'evalProg steps psi0 rng' evaluates a quantum program (a list of steps) on an initial state psi0, using the random number generator rng for measurements. It returns the final state and the remaining RNG. -}
 evalProg :: [Step] -> StateT -> RNG -> (StateT, Outcomes, RNG)
@@ -181,6 +191,7 @@ instance HilbertSpace StateT where
                 error $ "inner: incompatible shapes " ++ (show (m,n)) ++ " != " ++ (show (p,q))
 
 
+{-
 evalStepOp :: Int -> [Bool] -> Step -> (CMat, [Bool])
 evalStepOp _ [] _ = error "Please provide a path."
 evalStepOp n (p:path) step = case step of
@@ -191,6 +202,8 @@ evalStepOp n (p:path) step = case step of
             (proj_ks,path') = evalStepOp n path (Measure ks)
          in
             (proj_ks <> proj_k, path') 
+
+-}
 
 {-|
  measureProjection n k result 

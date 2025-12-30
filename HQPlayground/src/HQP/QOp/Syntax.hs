@@ -29,8 +29,9 @@ data QOp
 
 {- Quantum programs including measurement. -}
 data Step
-  = Unitary QOp    -- A unitary quantum program
-  | Measure [Int] -- Measurement of qubits ks (stochastic non-reversible process)
+  = Unitary QOp             -- A unitary quantum program
+  | Initialize [Nat] [Bool] -- Initialize qubits qs to classical values vs.
+  | Measure    [Nat] -- Measurement of qubits ks (stochastic non-reversible process)
   deriving (Show, Eq)
 
 type Program = [Step]

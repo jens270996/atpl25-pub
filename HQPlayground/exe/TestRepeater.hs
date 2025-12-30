@@ -4,10 +4,12 @@ import HQP
 import HQP.QOp.MatrixSemantics as MS
 import System.Random(mkStdGen, randoms)
 import Numeric.LinearAlgebra
-import Programs.RepeaterProtocol(repeater, teleport)
+import Programs.RepeaterProtocol(repeater, teleport, multiqubitRepeater)
+import Data.List (partition)
 
 
 -- | Extend a program to act on k additional qubits 
+{-
 extendprogram ::  Int -> Program -> Program  
 extendprogram new_n prog = map extendop prog
   where
@@ -17,6 +19,13 @@ extendprogram new_n prog = map extendop prog
      in Unitary $ cleanop (u ⊗ Id d)
     extendop (Measure ms) = Measure ms
 
+extendprogram_left d prog = map extendop prog
+  where
+    extendop (Unitary u)  = Unitary $ cleanop (Id d ⊗ u)
+    extendop (Measure ms) = Measure $ map (+d) ms
+-}
+
+
 main :: IO()
 main = do    
     let rng0 = randoms (mkStdGen 42) :: [Double]    
@@ -25,33 +34,32 @@ main = do
         l = 2  -- number of links between source and target nodes
         n = 2*l -- total chain qubits        
     
+    let message_qubits = [0.. -1+                m] -- m message qubits
+        chain_qubits   = [offset..offset-1+  2*l-1] -- 2*l-1 repeater chain qubits
+          where offset = m
+        target_qubits  = [offset..offset-1 +     m] -- m target qubits
+          where offset = m + 2*l-1
+
     -- | m-qubit quantum state to teleport 
-    let 
+    let         
         {-| Very secret message consisting of 2^m complex amplitudes.
             We use 1,2,...,2^m as an example message, we can transmit
             any m-qubit quantum state. -}
-        a i = 2*i 
-        b i = 2*i + 1
-        t l = b (l-1)
-
         message' = ((2^m) >< 1) [c :+ 0 | c <- [1..2^m]] :: CMat         
         norm    = norm_2 message' :+ 0
         message = (1 / norm) .* message'  -- normalize the message state
-
-        prog = extendprogram (n+m) $ foldr (++) [] [
-                repeater l ++ 
-                teleport (n+m) (n+i) (a 0) (t l) 
-                | i <- [0..m-1] ]            
         
-
-
+        repeater_prog = multiqubitRepeater chain_qubits target_qubits
+        prog = repeater_prog
+        
+        
     putStr $ "|ψ_m> = "++(showState message) ++ "\n"
     putStr $ "\nRepeater + Teleportation program:\n" ++ showProgram prog ++ "\n\n"
 
     putStr $ "\nProgram qubits: " ++ show (map step_qubits prog) ++ "\n\n"
 
     let psi_chain = ket (replicate n 0) :: CMat  -- initial all-zero state for Bell-chain qubits
-        psi = psi_chain ⊗ message -- initial all-zero state and teleport message
+        psi = psi_chain ∘ message -- initial all-zero state and teleport message
 
     putStr $ "|ψ_0 ⊗ ψ_m> = "++(showState psi) ++ "\nRunning repeater + teleportation program!\n"
     putStr $ "State qubits: " ++ show (ilog2 (rows psi)) ++ "\n\n"
@@ -60,4 +68,4 @@ main = do
     let (end_state,outcomes,_) = evalProg prog psi rng0
 
     putStr $ "Measurement outcomes: " ++ (show outcomes) ++"\n";    
-    putStr $ "Final " ++ show n ++ "-qubit state:\n" ++ (showState $ norm .* end_state) ++ "\n\n"
+    putStr $ "Final " ++ show n ++ "-qubit state:\n" ++ (showState $ end_state) ++ "\n\n"
