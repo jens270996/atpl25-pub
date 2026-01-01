@@ -29,8 +29,8 @@ op_dimension op = 1 `shiftL` (op_qubits op)
 step_qubits :: Step -> Nat
 step_qubits step = case step of 
   Unitary op -> op_qubits op
-  Measure ks -> 1 + maximum ks
-  Initialize ks _ -> 1 + maximum ks
+  Measure ks      -> 1 + foldr max 0 ks
+  Initialize ks _ -> 1 + foldr max 0 ks
 
            
 prog_qubits :: Program -> Nat
