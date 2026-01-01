@@ -50,6 +50,7 @@ library core
         random,
         mtl,
         array,
+        containers,
     	  vector-sized,
     	  finite-typelits
     hs-source-dirs:   src
