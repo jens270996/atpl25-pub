@@ -87,7 +87,6 @@ executable TestRepeater
   build-depends:
     random
   ghc-options:
-      -fprof-auto -rtsopts -with-rtsopts=-xc
       -Wno-missing-signatures
       -Wno-name-shadowing
       -Wno-incomplete-uni-patterns
