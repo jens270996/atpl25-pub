@@ -1,4 +1,4 @@
-module Programs.RepeaterProtocol (repeater, teleport, multiqubitRepeater,bellAt) where
+module Programs.RepeaterProtocol (repeater, teleport, multiqubitRepeater,multiqubitTeleport, bellAt) where
 import HQP
 import Debug.Trace(trace)
 
@@ -56,16 +56,17 @@ repeater n sources targets | (length sources) == (length targets) =
           u_pre  = foldr (∘) (Id n) u_swaps
                  ∘ foldr (∘) (Id n) u_bells
 
+          -- Measure away everything except endpoints
           meas   = (init targets) ++ (tail sources)
 
-          u_corr_all = foldr (∘) (Id n) u_corrs
+          u_post = foldr (∘) (Id n) u_corrs
       in
         --trace ("repeater " ++ show (n,sources,targets))
         [
           Initialize (sources++targets) (replicate (2*l) False),
-          Unitary $  u_pre,
+          Unitary u_pre,
           Measure meas,
-          Unitary $ u_corr_all,
+          Unitary u_post,
           Initialize (tail sources ++ init targets) (replicate (2*l-2) False)
         ]
     | otherwise = error $ "length sources " ++ show sources ++ " != length targets " ++ show targets
@@ -79,15 +80,33 @@ multiqubitRepeater n source_qubits chain_qubits target_qubits = let
         repeater n (s:chain_sources) (chain_targets++[t]) | (s,t) <- zip source_qubits target_qubits
     ]
 
-teleport :: Int -> Int -> Int -> Int -> Program
+teleport :: Nat -> Nat -> Nat -> Nat -> Program
 teleport n q source target = let -- teleport qubit q using Bell pair (a0,t)
     prog = [ 
       Unitary $ cleanop ( hAt n q ∘ cxAt n q source ),
       Measure [ q, source ],
-      Unitary $ cleanop ( cxAt n source target ∘ czAt n q target )]
+      Unitary $ cleanop ( cxAt n source target ∘ czAt n q target ) ]
   in 
     --trace ("\n\nTeleport "++(show (n,q,source,target)++" = "++(showProgram prog++"\n"))) 
     prog
+
+multiqubitTeleport :: Nat -> [Nat] -> [Nat] -> [Nat] -> Program
+multiqubitTeleport n message bell_sources bell_targets = let
+  u_pre  = foldr (∘) (Id n) $ 
+              [hAt n q ∘ cxAt n q s| (q,s) <- zip message bell_sources ] 
+
+  meas   = message ++ bell_sources
+
+  u_post = foldr (∘) (Id n) $
+              [cxAt n s t | (s,t) <- zip bell_sources bell_targets] ++ 
+              [czAt n q t | (q,t) <- zip message bell_targets]
+  in
+    [
+      Unitary u_pre,
+      Measure meas,
+      Unitary u_post,
+      Initialize message (replicate (length message) False)
+    ]
 
 --------------------------------------------------------------------------------
 -- Auxiliary functions
