@@ -1,6 +1,6 @@
 module HQP.QOp.HelperFunctions where
 import HQP.QOp.Syntax
-import Data.Bits(FiniteBits,countTrailingZeros,shiftL,shiftR)
+import Data.Bits(FiniteBits,finiteBitSize,countLeadingZeros,countTrailingZeros,shiftL,shiftR)
 import Data.List (sort)
 import qualified Data.Set as S
 
@@ -13,8 +13,8 @@ op_qubits op = case op of
     R a _         -> op_qubits a
     C a           -> 1 + op_qubits a
     Tensor    a b -> op_qubits a + op_qubits b
-    DirectSum a b -> 1 + op_qubits a -- Assume op_qubits a == op_qubits b is type checked
-    Compose   a b -> op_qubits a     -- Assume op_qubits a == op_qubits b is type checked
+    DirectSum a _ -> 1 + op_qubits a -- Assume op_qubits a == op_qubits b is type checked
+    Compose   a _ -> op_qubits a     -- Assume op_qubits a == op_qubits b is type checked
     Adjoint   a   -> op_qubits a
     Permute   ks  -> length ks 
     _             -> 1 -- 1-qubit gates
@@ -33,14 +33,14 @@ prog_qubits :: Program -> Nat
 prog_qubits program = maximum $ map step_qubits program
 
 -- | Support of an operator: the list of qubits it acts non-trivially on.
-op_support :: QOp -> Set Nat
+op_support :: QOp -> S.Set Nat
 op_support op = let
     shift ns k   = S.map (+k) ns
     union xs ys  = S.union xs ys
-    permute_support pi sup = S.fromList [ i | (i,j) <- zip [0..] pi, S.member j sup ]
-    permute_support_inv pi sup = S.fromList [ j | (i,j) <- zip [0..] pi, S.member i sup ]
+    permute_support     π sup = S.fromList [ i | (i,j) <- zip [0..] π, S.member j sup ]
+    permute_support_inv π sup = S.fromList [ j | (i,j) <- zip [0..] π, S.member i sup ]
   in case op of
-  Id n          -> S.empty
+  Id _          -> S.empty
   Phase _       -> S.empty
   R _ 0         -> S.empty
   R a _         -> op_support a
@@ -51,7 +51,7 @@ op_support op = let
   Compose a (Permute ks) -> permute_support_inv ks (op_support a)
   Compose a b   -> union (op_support a) (op_support b)
   Adjoint a     -> op_support a
-  Permute ks    -> permSupport ks
+  Permute ks    -> S.fromList $ permSupport ks
   _             -> S.singleton 0 -- 1-qubit gates
 
 
@@ -69,7 +69,7 @@ toBits' n k = let
 
 -- | ilog2 m = floor (log2 m) for m >= 0
 ilog2 :: (FiniteBits a, Integral a) => a -> Nat
-ilog2 m = finiteBitSize m - countLeadingZeros m
+ilog2 m = finiteBitSize m - countLeadingZeros m - 1
 
 evenOdd :: [a] -> ([a],[a])
 evenOdd [] = ([],[])
