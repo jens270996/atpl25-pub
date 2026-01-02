@@ -40,9 +40,12 @@ Long-form explanation is given at the end of this file, below the code.
 --                        ∘ (∏_{i=0}^{L-1} (CX_{a_i→b_i} ∘ H_{a_i}))
 --   3) Measure   M      = [b_0..b_{L-2}] ++ [a_1..a_{L-1}]
 --   4) Unitary   U_corr = ∏_{i=1}^{L-1} (CX_{a_i→t} ∘ CZ_{b_{i-1}→t})
-bellAt         n a b     = (cxAt n a b ) ∘ (hAt n a)
-bellTransform  n b1 a2   = (hAt n b1   ) ∘ (cxAt n b1 a2)
-bellCorrection n b1 a2 t = (cxAt n a2 t) ∘ (czAt n b1 t)
+bellAt, bellTransform :: Int -> Int -> Int -> QOp
+bellCorrection :: Int -> Int -> Int -> Int -> QOp
+bellAt         n s t     = (cxAt n s t ) ∘ (hAt n s)
+bellTransform  n t1 s2   = (hAt n t1   ) ∘ (cxAt n t1 s2)
+bellCorrection n t1 s2 t = (cxAt n s2 t) ∘ (czAt n t1 t)
+
 
 repeater :: Nat -> [Nat] -> [Nat] -> Program
 repeater n sources targets | (length sources) == (length targets) =
@@ -109,57 +112,26 @@ multiqubitTeleport n message bell_sources bell_targets = let
     ]
 
 --------------------------------------------------------------------------------
--- Auxiliary functions
---------------------------------------------------------------------------------
--- layout: a_i = 2i, b_i = 2i+1, total n = 2L, target t = b_{L-1}
-a :: Int -> Int
-a i = 2*i
-
-b :: Int -> Int
-b i = 2*i + 1
-
-t :: Int -> Int
-t l = b (l-1)
-
---------------------------------------------------------------------------------
 -- Gate placement
 --------------------------------------------------------------------------------
-bringToFront :: Int -> [Int] -> [Int]
-bringToFront n front = front ++ filter (`notElem` front) [0..n-1]
-
-
-embed :: Int -> [Int] -> QOp -> QOp
-embed n ws u =
-  let p   = bringToFront n ws
-      k   = length ws
-  in (adj $ Permute p) ∘ (u ⊗ Id (n-k)) ∘ Permute p
-
-
-at1 :: Int -> Int -> QOp -> QOp
-at1 n i g = embed n [i] g
-
-at2 :: Int -> Int -> Int -> QOp -> QOp
-at2 n i j g = embed n [i,j] g
-
-
 hAt :: Int -> Int -> QOp
 hAt n i = Id i ⊗ H ⊗ Id (n-i-1)
 
 cAt :: Int -> QOp  -> Int -> Int -> QOp
-cAt n op s t = let   
-  (c,x,hh) = if s < t then (s,t,Id n) 
-             else (t,s,hAt n s ∘ hAt n t)  -- swap control and target by conjugating with H
-  
-  res = cleanop $ hh ∘ Id c ⊗ C (Id (x-c-1) ⊗ op) ⊗ Id (n-x-1) ∘ hh  
-  in
-    --trace("cAt "++show (n,op,s,t)++": "++showOp res++", "++show (op_qubits res)++" qubits")
-    res
+cAt n op s t = 
+  if s < t then
+    Id s ⊗ C (Id (t-s-1) ⊗ op) ⊗ Id (n-t-1)
+  else    
+    hh ∘ Id t ⊗ C (op ⊗ Id (s-t-1)) ⊗ Id (n-s-1) ∘ hh
+  where
+    hh = hAt n s ∘ hAt n t  
 
 cxAt :: Int -> Int -> Int -> QOp
 cxAt n s t = cAt n X s t
 
 czAt :: Int -> Int -> Int -> QOp
 czAt n s t = cAt n Z s t
+
 {-
 Bell measurement transfers entanglement |Φ>_{AB}, |Φ>_{CD}  -->  |Φ>_{AD}
 ---------------------------------------------------------------------
