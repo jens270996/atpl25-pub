@@ -35,7 +35,6 @@ library core
       HQP.QOp.Simplify,
       HQP.QOp.HelperFunctions,
       HQP.QOp.MatrixSemantics,
-      HQP.QOp.TensorSemantics,
       HQP.QOp.StabilizerSemantics,
       HQP.PrettyPrint,
       HQP.PrettyPrint.PrettyOp,
@@ -50,9 +49,7 @@ library core
         random,
         mtl,
         array,
-        containers,
-    	  vector-sized,
-    	  finite-typelits
+        containers
     hs-source-dirs:   src
 
 common exe-common
