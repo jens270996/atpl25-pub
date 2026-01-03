@@ -75,10 +75,15 @@ class (Scalar v ~ Complex (Realnum v), Floating (Realnum v), HasTensorProduct v)
   (.*)  :: Scalar v -> v -> v -- Scalar-vector multiplication
   (.+)  :: v -> v -> v        -- Vector-vector addition
   
-  inner :: v -> v -> Scalar v -- Inner product 
+  inner     :: v -> v -> Scalar v -- Inner product 
+  normalize :: v -> v
+  
   norm  :: v -> Realnum v     -- Vector 2-norm  
-  norm a = sqrt(realPart $ inner a a)  
+  norm x = sqrt(realPart $ inner x x)  
 
+  
+
+  
 class HasTensorProduct o where
   (⊗) :: o -> o -> o
 

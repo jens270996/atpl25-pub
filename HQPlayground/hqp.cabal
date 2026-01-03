@@ -29,18 +29,26 @@ common common-options
 library core
     import:   warnings, common-options
     exposed-modules: 
-      HQP,
-      HQP.QOp,
-      HQP.QOp.Syntax,
-      HQP.QOp.Simplify,
-      HQP.QOp.HelperFunctions,
-      HQP.QOp.MatrixSemantics,
-      HQP.QOp.StabilizerSemantics,
-      HQP.PrettyPrint,
-      HQP.PrettyPrint.PrettyOp,
-      HQP.PrettyPrint.PrettyMatrix,
-      Programs.QFT,
-      Programs.QuantumAdder,
+      HQP
+      HQP.QOp
+      -- QOp syntax definitions and Operator typeclass:
+      HQP.QOp.Syntax   
+      -- QOp program transformations for optimization and analysis:
+      HQP.QOp.Simplify 
+      HQP.QOp.HelperFunctions
+      -- Semantics backend API typeclass
+      HQP.QOp.Semantics           
+      -- Matrix semantics backend implementation:
+      HQP.QOp.MatrixSemantics     
+      -- Stabilizer semantics backend implementation:
+      HQP.QOp.StabilizerSemantics 
+      -- Pretty-printing HQP programs and representations:
+      HQP.PrettyPrint
+      HQP.PrettyPrint.PrettyOp
+      HQP.PrettyPrint.PrettyMatrix
+      -- Example quantum programs written in HQP:
+      Programs.QFT
+      Programs.QuantumAdder
       Programs.RepeaterProtocol
 
     build-depends:  
