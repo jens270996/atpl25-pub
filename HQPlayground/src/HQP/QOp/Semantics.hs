@@ -31,9 +31,6 @@ class ( HilbertSpace (StateT b)
   type StateT b
   type OpT    b
 
-  stateQubits :: StateT b -> Int
-  opQubits    :: OpT    b -> Int  
-
   apply :: OpT b -> StateT b -> StateT b
 
   -- | Computational basis ket for bits, e.g. ket [0,1,1] = |011⟩.
