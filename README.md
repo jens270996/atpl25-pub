@@ -139,7 +139,7 @@ The program implements the Repeater Protocol, which, given a sequence of qubits 
 
 2. ```QuantumAdder.hs``` Example of quantum arithmetic using QFT. This shows how to use the basis kets as binary integers mod 2^n, and how to perform constant addition to all of them (mod 2^n, so addition becomes a permutation of the basis states), as well as how to add another qubit register to all 2^n basis kets (producing an m+n-qubit entangled state |x> ⊗ |y> ↦ |x> ⊗ |x+y mod 2^n>). This can be extended to define multipliation and further arithmetic operations.
 
-3. ```QFT.hs``, the Quantum Fourier Transform implementation, has been simplified. 
+3. ```QFT.hs```, the Quantum Fourier Transform implementation, has been simplified. 
 
 ## HelperFunctions.hs and Simplify.hs: Helper functions for program transformations 
 
