@@ -29,7 +29,9 @@ common common-options
         AllowAmbiguousTypes,
         TypeApplications,
         ScopedTypeVariables,
-        GeneralizedNewtypeDeriving        
+        GeneralizedNewtypeDeriving,
+        OverloadedLists,
+        DataKinds,
 
 library core
     import:   warnings, common-options
@@ -41,9 +43,9 @@ library core
       -- QOp program transformations for optimization and analysis:
       HQP.QOp.Simplify 
       HQP.QOp.HelperFunctions
-      -- Matrix semantics backend implementation:
+      -- HQP Semantics backend implementations:
       HQP.QOp.MatrixSemantics     
-      -- Stabilizer semantics backend implementation:
+      HQP.QOp.TensorSemantics
       HQP.QOp.StabilizerSemantics 
       -- Pretty-printing HQP programs and representations:
       HQP.PrettyPrint
@@ -60,7 +62,9 @@ library core
         random,
         mtl,
         array,
-        containers
+        containers,
+        massiv
+--        hasktorch
     hs-source-dirs:   src
 
 common exe-common
