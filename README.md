@@ -135,3 +135,37 @@ The program implements the Repeater Protocol, which, given a sequence of qubits 
 
 ```exe/TestRepeater.hs``` is a test of multi-qubit repeater protocol and multi-qubit teleportation, transmitting a length-2^m message, using amplitudes of 0,1,2,...,2^m-1 (normalized) as a simple example. You can test it currently using the (very slow!) MatrixSemantics backend, and plug in your Stabilizer backend or ZX backend to verify correctness and benchmark.
 
+
+## HelperFunctions.hs and Simplify.hs: Helper functions for program transformations 
+
+I've added several helper functions that can make life easier for those of you working on semantics backends or otherwise need to manipulate QOp programs. Have a look if anything below solves some of your problems, and consider putting in a request for a missing helper function if you have an un-scratched itch. 
+
+1. ```op_support:: QOp -> Set Int``` Computes the set of qubits (local indexing) on which an operator acts nontrivially.
+
+2. Apply a list of rewrite rules repeatedly until a fixpoint is reached, but at most n iterations.
+```haskell
+simplifyFixpoint :: Eq o => Int -> [o -> o] -> o -> o
+simplifyFixpoint n rewriterules op = fixpoint n (simplifyPass rewriterules) op  
+```
+
+2. Use algebraic rules to lift composes to the top (compositions of tensor products) or push down (tensor products of compositions) instead of a mixed tree.
+```pushComposes :: QOp -> QOp```
+```liftComposes :: QOp -> QOp```
+
+3. Use associativity to turn ```Compose (Compose ( Compose( ... )))``` and ```Tensor( Tensor ( Tensor( ... )))``` 
+into flat lists:
+```haskell
+assocComposes :: QOp -> [QOp]
+assocComposes (Compose a b) = assocComposes a ++ assocComposes b
+assocComposes op          = [op]
+
+assocTensors :: QOp -> [QOp]
+assocTensors (Tensor a b) = assocTensors a ++ assocTensors b
+assocTensors op          = [op]
+```
+
+4. General clean-up of QOp expressions using whatever simplification operations are implemented. Presently:
+```haskell
+cleanop :: QOp -> QOp
+cleanop = simplifyFixpoint 10000 [cleanOnes, cleanAdjoints, liftComposes,doComposes, pushComposes]
+```
