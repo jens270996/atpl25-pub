@@ -38,6 +38,7 @@ library core
       HQP.ZX.Syntax,
       HQP.ZX.Simplify,
       HQP.ZX.Convert,
+      HQP.ZX.Visualize,
       HQP.PrettyPrint,
       HQP.PrettyPrint.PrettyOp,
       HQP.PrettyPrint.PrettyMatrix,
@@ -50,7 +51,9 @@ library core
         hmatrix,
         random,
         mtl,
-        algebraic-graphs
+        algebraic-graphs,
+        diagrams-svg,
+        diagrams-lib
     hs-source-dirs:   src
 
 common exe-common
@@ -58,7 +61,8 @@ common exe-common
   build-depends:
       base,
       hmatrix,
-      hqp:core
+      hqp:core,
+      diagrams-svg
   ghc-options: -Wall
 
 test-suite ZX-test
@@ -69,7 +73,9 @@ test-suite ZX-test
     default-language: Haskell2010
 
     -- Modules included in this executable, other than Main.
-    -- other-modules:
+    other-modules:
+        SimplifyTests,
+        ConverterTests
 
     -- LANGUAGE extensions used by modules in this package.
     -- other-extensions:
@@ -90,14 +96,15 @@ test-suite ZX-test
         tasty,
         tasty-hunit,
         algebraic-graphs
--- executable NoCloning
---   import: exe-common
---   main-is: NoCloning.hs
+
+executable Visualize
+  import: exe-common
+  main-is: Visualize.hs
 
 
--- executable ProgramInversion
---   import: exe-common
---   main-is: ProgramInversion.hs
+executable Convert
+  import: exe-common
+  main-is: Convert.hs
 
 -- executable YesTeleportation
 --   import: exe-common

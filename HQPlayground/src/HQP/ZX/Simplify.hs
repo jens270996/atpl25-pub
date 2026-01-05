@@ -16,7 +16,7 @@ mergeRedsRec (redSpider:redSpiders) g =
         ([],nonAdjacentReds) -> mergeRedsRec nonAdjacentReds g
         (redNeighbors,nonAdjacentReds) ->
             let verticesToMerge = redSpider : redNeighbors
-                newPhase = sum (map (getPhase . getElement) verticesToMerge)
+                newPhase = sum $ map (getPhase . getElement) verticesToMerge
                 (Node nid _) = redSpider
                 newSpider = Node nid (Red newPhase)
                 newGraph = removeEdge newSpider newSpider $ mergeVertices (`elem` verticesToMerge) newSpider g
@@ -25,11 +25,5 @@ mergeRedsRec (redSpider:redSpiders) g =
 -- Same as merge red spiders?? Special case with only two neighbors for each Hadamard.
 -- hadamardRule :: ZXDiagram -> ZXDiagram
 
-
-
 -- If a spider has a majority of Hadamard gates on its legs, change its color??
 -- changeColorOnMajority :: ZXDiagram -> ZXDiagram
-
-
--- If a spider has phase 0 and two legs, it can be removed. - What about multiple legs?
--- remove0PhaseSpiders :: ZXDiagram -> ZXDiagram

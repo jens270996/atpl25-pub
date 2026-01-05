@@ -26,11 +26,11 @@ fromQOp op = case op of
                           c4 <- generateVertexId
                           c5 <- generateVertexId
                           c6 <- generateVertexId
-                          return $ edges [(Node c1 Input,Node c3 (Green 0))
-                                         ,(Node c2 Input,Node c4 (Red 0))
-                                         ,(Node c3 (Green 0),Node c4 (Red 0))
-                                         ,(Node c3 (Green 0),Node c5 Output)
-                                         ,(Node c4 (Red 0),Node c6 Output)]
+                          return $ edges [(Node c1 Input,Node c3 (Green (PiHalves 2)))
+                                         ,(Node c2 Input,Node c4 (Red (PiHalves 2)))
+                                         ,(Node c3 (Green (PiHalves 2)),Node c4 (Red (PiHalves 2)))
+                                         ,(Node c3 (Green (PiHalves 2)),Node c5 Output)
+                                         ,(Node c4 (Red (PiHalves 2)),Node c6 Output)]
     QOp.Tensor a b -> do g <- fromQOp a
                          g' <- fromQOp b
                          return $  overlay g g'
@@ -46,7 +46,7 @@ wrap :: ZXElement -> Counter ZXDiagram
 wrap e = do c1 <- generateVertexId
             c2 <- generateVertexId
             c3 <- generateVertexId
-            return $ edges [(Node c1 Input,Node c2 e),(Node c2 e,Node c3 e)]
+            return $ edges [(Node c1 Input,Node c2 e),(Node c2 e,Node c3 Output)]
 
 
 -- connect outputs from a to inputs of b
@@ -55,13 +55,12 @@ wrap e = do c1 <- generateVertexId
 compose :: ZXDiagram -> ZXDiagram -> ZXDiagram
 compose a b =
     let g = overlay a b
-        inputs = filter isInput $ vertexList g
-        outputs = filter isOutput $ vertexList g
+        inputs = filter isInput $ vertexList b
+        outputs = filter isOutput $ vertexList a
     in foldr mergeAndRemoveIOVertices g (zip inputs outputs)
 
 mergeAndRemoveIOVertices :: (ZXNode,ZXNode) -> ZXDiagram -> ZXDiagram
 mergeAndRemoveIOVertices (i,o) g =
-    case (neighbors i g,neighbors o g) of
+    case (getNeighbors i g, getNeighbors o g) of
        ([iN],[oN]) -> overlay (edge iN oN) . removeVertex o . removeVertex i $ g
        _       -> error "Inputs and Outputs can only have 1 edge."
-        
