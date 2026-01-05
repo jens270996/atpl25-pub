@@ -32,6 +32,7 @@ instance Num Phase where
     abs (PiHalves a) = PiHalves $ abs a
     signum (Real a) = Real $ signum a
     signum (PiHalves a) = PiHalves $ signum a
+    fromInteger 0 = PiHalves 0
     fromInteger a = Real $ fromInteger a `mod'` (2*pi)
     negate (Real a) = Real $ negate a
     negate (PiHalves a) = PiHalves $ negate a
