@@ -15,25 +15,25 @@ tests =
                 @?= (path 
                     [ Node 0 Input
                     , Node 1 (Green $ PiHalves 2)
-                    , Node 2 (Green $ PiHalves 2)]),
+                    , Node 2 Output]),
             testCase "X" $
                 convert QOp.X 
                 @?= (path
                     [ Node 0 Input
                     , Node 1 (Red $ PiHalves 2)
-                    , Node 2 (Red $ PiHalves 2)]),
+                    , Node 2 Output]),
             testCase "Rz" $
                 convert (QOp.R QOp.Z (pi/2)) 
                 @?= (path 
                     [Node 0 Input
                     , Node 1 (Green $ PiHalves 1)
-                    , Node 2 (Green $ PiHalves 1)]),
+                    , Node 2 Output]),
             testCase "Rx" $
                 convert (QOp.R QOp.X (pi/2))
                 @?= (path 
                 [ Node 0 Input
                 , Node 1 (Red $ PiHalves 1)
-                , Node 2 (Red $ PiHalves 1)]),
+                , Node 2 Output]),
             {- Reference: https://zxcalculus.com/figures/cnot.svg
             -G---
               \

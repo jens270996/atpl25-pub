@@ -8,7 +8,6 @@ type RealT = Double  -- Can be replaced by e.g. exact fractions or constructive 
 type ComplexT = Complex RealT
 
 data Phase = Real RealT | PiHalves Int
-    deriving (Show)
 
 tolerance :: Fractional a => a
 tolerance = 1e-3
