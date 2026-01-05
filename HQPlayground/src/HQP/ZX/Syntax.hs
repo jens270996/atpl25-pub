@@ -37,6 +37,10 @@ instance Num Phase where
     negate (Real a) = Real $ negate a
     negate (PiHalves a) = PiHalves $ negate a
 
+instance Show Phase where
+    show (PiHalves 2) = "π"
+    show (PiHalves a) = if a `mod` 2 == 0 then show (a `div` 2)++" π" else show a ++ "/2 π"
+    show (Real a) = show a
 data ZXElement
     = H
     | Green Phase
