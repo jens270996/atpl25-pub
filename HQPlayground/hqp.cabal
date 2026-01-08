@@ -11,7 +11,8 @@ build-type:      Simple
 extra-doc-files: CHANGELOG.md
 
 common warnings
-    ghc-options: -Wall -Wno-orphans
+    ghc-options: -Wall -Wno-orphans -Wno-unused-imports
+
 
 common common-options
     default-language: GHC2021    
@@ -22,30 +23,47 @@ common common-options
         TypeFamilies,
         TypeSynonymInstances,
         BinaryLiterals,
-        PatternSynonyms
+        PatternSynonyms,
+        ViewPatterns,
+        LambdaCase,
+        AllowAmbiguousTypes,
+        TypeApplications,
+        ScopedTypeVariables,
+        GeneralizedNewtypeDeriving,
+        OverloadedLists,
+        DataKinds,
 
 library core
     import:   warnings, common-options
     exposed-modules: 
-      HQP,
-      HQP.QOp,
-      HQP.QOp.Syntax,
-      HQP.QOp.Simplify,
-      HQP.QOp.HelperFunctions,
-      HQP.QOp.MatrixSemantics,
-      HQP.QOp.TensorSemantics,
-      HQP.QOp.StabilizerSemantics,
-      HQP.ZX.Syntax,
-      HQP.ZX.Simplify,
-      HQP.ZX.Convert,
-      HQP.ZX.Visualize,
-      HQP.PrettyPrint,
-      HQP.PrettyPrint.PrettyOp,
-      HQP.PrettyPrint.PrettyMatrix,
-      Programs.QFT,
+      HQP
+      HQP.QOp
+      -- QOp syntax definitions and Operator typeclass:
+      HQP.QOp.Syntax   
+      -- QOp program transformations for optimization and analysis:
+      HQP.QOp.Simplify 
+      HQP.QOp.HelperFunctions
+      -- HQP Semantics backend implementations:
+      HQP.QOp.MatrixSemantics     
+      HQP.QOp.TensorSemantics
+      HQP.QOp.StabilizerSemantics 
+      -- Pretty-printing HQP programs and representations:
+      HQP.PrettyPrint
+      HQP.PrettyPrint.PrettyOp
+      HQP.PrettyPrint.PrettyMatrix
+      -- ZX extension
+      HQP.ZX.Syntax
+      HQP.ZX.Simplify
+      HQP.ZX.Convert
+      HQP.ZX.Visualize
+      -- Example quantum programs written in HQP:
+      Programs.QFT
+      Programs.QuantumAdder
+      Programs.RepeaterProtocol
+
     other-modules:
       HQP.ZX.Utils,
-      HQP.ZX.Counter,
+      HQP.ZX.IdGenerator,
     build-depends:  
         base,
         hmatrix,
@@ -53,7 +71,11 @@ library core
         mtl,
         algebraic-graphs,
         diagrams-svg,
-        diagrams-lib
+        diagrams-lib,
+        array,
+        containers,
+        massiv
+--        hasktorch
     hs-source-dirs:   src
 
 common exe-common
@@ -111,4 +133,27 @@ executable Convert
 --   build-depends:
 --     random
 --   main-is: YesTeleportation.hs
-  
+executable ProgramInversion
+  import: exe-common
+  main-is: ProgramInversion.hs
+  ghc-options:
+      -Wno-missing-signatures
+      -Wno-name-shadowing
+      -Wno-incomplete-uni-patterns
+
+executable YesTeleportation
+  import: exe-common
+  build-depends:
+    random
+  main-is: YesTeleportation.hs
+
+executable TestRepeater
+  import: exe-common
+  main-is: TestRepeater.hs
+  build-depends:
+    random
+  ghc-options:
+      -Wno-missing-signatures
+      -Wno-name-shadowing
+      -Wno-incomplete-uni-patterns
+

@@ -7,14 +7,15 @@ showOp op = case op of
     C a             -> "C ("++ showOp a ++ ")"
     a `Tensor`    b -> "(" ++ showOp a ++ " ⊗ " ++ showOp b ++ ")"
     a `DirectSum` b -> "(" ++ showOp a ++ " ⊕ "  ++ showOp b ++ ")"
-    a `Compose`   b -> "(" ++ showOp a ++ " <> " ++ showOp b ++ ")"
+    a `Compose`   b -> "(" ++ showOp a ++ " ∘ " ++ showOp b ++ ")"
     Adjoint a       -> "(adj " ++ showOp a ++ ")"
-    Bra ks          -> "Bra " ++ show ks -- PatternSynonym Alias for Adjoint (Ket ks)
-    _               -> show op
-
+    Id 0     -> "One"
+    Id 1     -> "I"
+    _        -> show op
+    
 showStep :: Step -> String
-showStep (Measure ks) = "Measure " ++ show ks
 showStep (Unitary op) = "Unitary $ " ++ showOp op
+showStep step = show step
 
 showProgram :: Program -> String
 showProgram steps = intercalate "\n" [ "step" ++ show i ++ " = " ++ (showStep step)
