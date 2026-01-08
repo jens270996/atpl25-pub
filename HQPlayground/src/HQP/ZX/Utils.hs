@@ -30,7 +30,7 @@ isRed (Node _ v) = case v of
                 Red _ -> True
                 _ -> False
 
-asRed :: ZXNode -> Maybe (Int, Phase)
+asRed :: ZXNode -> Maybe (Id, Phase)
 asRed (Node nid (Red p)) = Just (nid, p)
 asRed _ = Nothing
 
@@ -39,7 +39,7 @@ isGreen (Node _ v) = case v of
                 Green _ -> True
                 _ -> False
 
-asGreen :: ZXNode -> Maybe (Int, Phase)
+asGreen :: ZXNode -> Maybe (Id, Phase)
 asGreen (Node nid (Green p)) = Just (nid, p)
 asGreen _ = Nothing
 
@@ -63,5 +63,8 @@ isOutput (Node _ v) = case v of
 getElement :: ZXNode -> ZXElement
 getElement (Node _ e) = e
 
-getVertexId :: ZXNode -> Int
+getVertexId :: ZXNode -> Id
 getVertexId (Node v _) = v
+
+vertexLane :: ZXNode -> Lane
+vertexLane = fst . getVertexId

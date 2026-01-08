@@ -63,7 +63,7 @@ library core
 
     other-modules:
       HQP.ZX.Utils,
-      HQP.ZX.Counter,
+      HQP.ZX.IdGenerator,
     build-depends:  
         base,
         hmatrix,

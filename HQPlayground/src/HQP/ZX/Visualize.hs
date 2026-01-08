@@ -60,7 +60,7 @@ getElementsWhere g pred = filter pred . map getElement $ vertexList g
 iOPath :: [(ZXNode,ZXNode)] -> ZXNode -> ZXNode -> [ZXNode]
 iOPath es i o = iOPathRec es (getVertexId i) (getVertexId o) [i]
 
-iOPathRec :: [(ZXNode,ZXNode)] -> Int -> Int -> [ZXNode] -> [ZXNode]
+iOPathRec :: [(ZXNode,ZXNode)] -> Id -> Id -> [ZXNode] -> [ZXNode]
 iOPathRec _ cid did path | cid == did = reverse path
 iOPathRec es cid did path =
     let next = maximum . map snd . filter (\(Node id' _, Node id'' _) -> id' == cid) $ es

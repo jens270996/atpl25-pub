@@ -1,7 +1,7 @@
 
 module HQP.ZX.IdGenerator where
 import Control.Monad
-
+import HQP.ZX.Syntax
 newtype IdGenerator a = IdGenerator
     { runIdGenerator ::
         Id ->
@@ -32,8 +32,8 @@ switchLane :: IdGenerator ()
 switchLane = IdGenerator (\(lane,depth)-> ((),(lane+1,depth)))
 
 -- Take a step right
-proceeed :: IdGenerator ()
-proceeed = IdGenerator (\(lane,depth)-> ((),(lane,depth+1)))
+proceed :: IdGenerator ()
+proceed = IdGenerator (\(lane,depth)-> ((),(lane,depth+1)))
 
 getLane :: IdGenerator Lane
 getLane = IdGenerator (\(lane,depth)-> (lane,(lane,depth)))
@@ -44,5 +44,5 @@ getDepth = IdGenerator (\(lane,depth)-> (depth,(lane,depth)))
 setLane :: Lane -> IdGenerator ()
 setLane lane = IdGenerator (\(_,depth)-> ((),(lane,depth)))
 
-setDepth :: IdGenerator ()
+setDepth :: Depth -> IdGenerator ()
 setDepth depth = IdGenerator (\(lane,_)-> ((),(lane,depth)))
