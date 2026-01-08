@@ -59,5 +59,31 @@ tests =
                     , (Node (0,1) (Green $ PiHalves 0), Node (1,1) (Red $ PiHalves 0))
                     , (Node (0,1) (Green $ PiHalves 0), Node (0,2) Output)
                     , (Node (1,1) (Red $ PiHalves 0), Node (1,2) Output)
+                    ]),
+            testCase "Compose" $
+                convert (QOp.Compose QOp.Z QOp.X)
+                @?= ( edges
+                    [ (Node (0,0) Input, Node (0,1) (Green $ PiHalves 2))
+                    , (Node (0,1) (Green $ PiHalves 2), Node (0,2) (Red $ PiHalves 2))
+                    , (Node (0,2) (Red $ PiHalves 2), Node (0,3) Output)
+                    ]),
+            testCase "Tensor" $
+                convert (QOp.Tensor QOp.Z QOp.X)
+                @?= ( edges
+                    [ (Node (0,0) Input, Node (0,1) (Green $ PiHalves 2))
+                    , (Node (1,0) Input, Node (1,1) (Red $ PiHalves 2))
+                    , (Node (0,1) (Green $ PiHalves 2), Node (0,2) Output)
+                    , (Node (1,1) (Red $ PiHalves 2), Node (1,2) Output)
+                    ]),
+            testCase "Tensor under Composition" $
+                convert (QOp.Compose (QOp.Tensor QOp.Z QOp.X) (QOp.Tensor QOp.X QOp.Z))
+                @?= ( edges
+                    [ (Node (0,0) Input, Node (0,1) (Green $ PiHalves 2))
+                    , (Node (0,1) (Green $ PiHalves 2), Node (0,2) (Red $ PiHalves 2))
+                    , (Node (0,2) (Red $ PiHalves 2), Node (0,3) Output)
+                    , (Node (1,0) Input, Node (1,1) (Red $ PiHalves 2))
+                    , (Node (1,1) (Red $ PiHalves 2), Node (1,2) (Green $ PiHalves 2))
+                    , (Node (1,2) (Green $ PiHalves 2), Node (1,3) Output)
                     ])
+            -- We move all compositions up before conversion, so no "Composition under Tensor"
         ]
