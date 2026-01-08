@@ -1,6 +1,6 @@
 module PI where
 
-import HQP
+import HQP hiding (fixpoint)
 import Programs.QFT
 import qualified HQP.QOp.MatrixSemantics as MatSem 
 import Numeric.LinearAlgebra(rows,norm_2)

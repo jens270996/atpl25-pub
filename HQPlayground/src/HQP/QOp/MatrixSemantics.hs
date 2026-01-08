@@ -3,143 +3,141 @@
 module HQP.QOp.MatrixSemantics where
 
 import HQP.QOp.Syntax
+import HQP.QOp.Simplify
+import HQP.PrettyPrint.PrettyOp
 import HQP.QOp.HelperFunctions
 import Numeric.LinearAlgebra hiding(normalize,step,(<>)) -- the hmatrix library
-import Data.Bits(shiftL)
+import Data.Bits(shiftL,xor)
+import Data.Array(accumArray,elems)
+import Data.List(sort)
+import Debug.Trace(trace)
 
 type CMat = Matrix ComplexT
 type RMat = Matrix RealT
 type StateT = CMat
 type OpT    = CMat
 
-
 {-| 
  evalOp :: Op -> CMat
  (evalOp op) evaluates the pure quantum operator op (defined in Circuit.hs) in the matrix semantics, and produces a complex matrix of dimension 2^n x 2^n (where n is the qubit-length of op)
 -}
-evalOp  :: QOp -> CMat
+
+apply :: OpT -> StateT -> StateT
+apply op state = op <> state
+
+measure1 :: (CMat, Outcomes, RNG) -> Nat -> (CMat, Outcomes, RNG)
+measure1 (state, outcomes, (r:rng)) k = let
+      n = ilog2 (rows state)
+      proj0 = measureProjection n k 0
+      proj1 = measureProjection n k 1
+
+      s0 = proj0 <> state
+      s1 = proj1 <> state
+
+      prob0 = realPart $ inner state s0
+      prob1 = realPart $ inner state s1
+
+      outcome = if (r < prob0) then False else True
+      collapsed_state = normalize $ if(outcome) then s1 else s0
+
+      in
+          if (abs(prob1+prob0-1)>tol) then
+              error $ "Probabilities don't sum to 1: " ++ (show (prob0,prob1))
+          else
+              (collapsed_state, outcome:outcomes, rng)
+
+measure1 (_,_,[]) _ = error "No more random numbers. This never happens."
+
+  {-| bra [v0,...,v_{n-1}] (where v_j is 0 or 1) is the adjoint state <v0 v1 ... v_{n-1}|. In the matrix representation, this is a row-vector in C^{2^n}, i.e. of dimension (1 >< 2^n). -}
+ket :: [Int] -> CMat
+ket []     = (1><1) [1]
+ket (v':vs) = let 
+      v = fromIntegral v' :+ 0
+  in 
+      (2><1) [1-v,v] ⊗ (ket vs)
+
+evalOp :: QOp -> CMat
 evalOp op = case op of
-    One -> (1><1) [1]  -- Scalar 1: Tensor product identity
+  Id n -> ident (2^n)
 
-    Ket ks -> ket ks
+  Phase q -> let theta = (realToFrac q * pi) :+ 0 
+             in  scalar (exp (ii*theta))
 
-    I -> (2 >< 2) [1,0,
-                   0,1]
+  I -> (2 >< 2) [1,0,
+                 0,1]
 
-    X -> (2 >< 2) [0,1,
-                   1,0]
+  X -> (2 >< 2) [0,1,
+                 1,0]
 
-    SX -> (2 >< 2) [1:+  1,  1:+(-1),
-                    1:+(-1),1:+  1]/2
+  Y -> (2 >< 2) [-ii, 0,
+                  0, ii]
 
-    Y -> (2 >< 2) [-ii, 0,
-                    0, ii]
+  Z -> (2 >< 2) [1,0,
+                 0,-1]
 
-    Z -> (2 >< 2) [1,0,
-                   0,-1]
+  H -> let s = 1/sqrt 2
+       in  s * ((2><2) [1, 1,
+                       1,-1])
 
-    H -> let s = 1/sqrt 2
-         in  s * ((2><2) [1, 1,
-                         1,-1])
+  SX -> evalOp $ R X (1/2)
 
-    R axis theta' -> 
-        let mat  = evalOp axis
-            theta = theta' :+ 0 -- Haskell won't multiply real and complex numbers
-        in
-            matFunc exp ( (-ii*theta/2) .* mat )
+  R axis q -> 
+      let mat  = evalOp axis
+          theta = (realToFrac q * pi) :+ 0 -- Haskell won't multiply real and complex numbers
+      in
+          matFunc exp ( (-ii*theta/2) .* mat )
 
-    Permute ks -> let
-                        n = length ks
-                        dims = 1 `shiftL` n
-                        indices = [ (i, foldl (\acc (bit,pos) -> acc + (bit `shiftL` pos)) 0 (zip (toBits' n i) ks)) | i <- [0..dims-1] ]
-                        values  = replicate dims (1 :+ 0)
-                    in
-                        assoc (dims,dims) (0 :+ 0) (zip indices values)
-                                            
-    C op1          ->  let 
-                            mop = evalOp op1
-                            mI  = ident (rows mop)
-                        in
-                            mI `directSum` mop -- |0><0| ⊗ I^n + |1><1| ⊗ op1
-
-    op1 `DirectSum`  op2 -> (evalOp op1) ⊕  (evalOp op2)
-    op1 `Tensor`     op2 -> (evalOp op1) ⊗  (evalOp op2)
-    op1 `Compose`    op2 -> (evalOp op1) <> (evalOp op2) 
-    Adjoint op1         -> adj $ evalOp op1
-
-
---  State contruction: An n-qubit state can be represented by a vector in C^{2^n} (we'll later see potentially more compact representations). 
-
-bra, ket :: [Int] -> CMat
-
-{-| bra [v0,...,v_{n-1}] (where v_j is 0 or 1) is the adjoint state <v0 v1 ... v_{n-1}|. In the matrix representation, this is a row-vector in C^{2^n}, i.e. of dimension (1 >< 2^n). -}
-bra []     = (1><1) [1]
-bra (v':vs) = let 
-        v = fromIntegral v' 
-    in 
-        (1><2) [1-v,v] ⊗ (bra vs)
-
-{-| ket [v0,...,v_{n-1}] (where v_j is 0 or 1) is the state |v0 v1 ... v_{n-1}>. In the matrix representation, this is a column-vector in C^{2^n}, i.e. of dimension (2^n >< 1). -}
-ket vs     = adj $ bra vs
-
-
-{-| Measurements require random numbers, which are non-deterministic by nature. Everything here is kept purely functional except, with side effects restricted to program mains, so random numbers are simply given as a list of Doubles between 0 and 1. -}
-type RNG = [Double]
-
-{-| 'evalStep rng step state' evaluates a computational step (unitary or measurement) given the current state and returns the modified quantum state. 
-
-To deal with random measurements in a pure functional setting, we treat a random number generator rng as an infinite list of numbers between 0 and 1. This allows the library to remain pure - IO comes in from program mains. 
-
-We take a random number generator as the first parameter, read off the first element, and return
-the remainder together with the updated quantum state.
--} 
-evalStep :: Step -> StateT -> RNG -> (StateT,RNG)
-evalStep _ _ [] = error "No more random numbers. This never happens."
-
-evalStep step state (r:rng)   = case step of
-    Unitary op   -> ((evalOp op) <> state, r:rng)
-    Measure []   -> (state, r:rng)
-    Measure (k:ks) -> let
-        n = ilog2 (rows state)        
-        proj0 = measureProjection n k 0
-        proj1 = measureProjection n k 1
-
-        s0 = proj0 <> state
-        s1 = proj1 <> state
-
-        prob0 = realPart $ inner state s0
-        prob1 = realPart $ inner state s1
-                    
-        collapsed_state = normalize $ if(r<prob0) then s0 else s1
-        in
-            if (abs(prob1+prob0-1)>tol) then
-                error $ "Probabilities don't sum to 1: " ++ (show (prob0,prob1))
-            else
-                evalStep (Measure ks) collapsed_state rng
-
-
-{-| 'evalProg steps psi0 rng' evaluates a quantum program (a list of steps) on an initial state psi0, using the random number generator rng for measurements. It returns the final state and the remaining RNG. -}
-evalProg :: [Step] -> StateT -> RNG -> (StateT, RNG)
-evalProg steps psi0 rng  =
-  foldl apply_step (psi0, rng) steps
-  where
-    apply_step :: (StateT, RNG) -> Step -> (StateT, RNG)
-    apply_step (psi, rng') step = evalStep step psi rng'
-
-
-{-| We define a HilbertSpace typeclass, which we will use for states.
-    Tensor product, direct sum, adjoint, and composition are inherited from Operator. 
- -}
-class (Scalar v ~ Complex (Realnum v), Floating (Realnum v)) => HilbertSpace v where
-  type Realnum v 
-  type Scalar  v 
-
-  (.*)  :: Scalar v -> v -> v -- Scalar-vector multiplication
-  (.+)  :: v -> v -> v        -- Vector-vector addition
+  Permute ks -> let
+                      n = length ks
+                      dims = 1 `shiftL` n
+                      indices = [ (i, foldl (\acc (bit,pos) -> acc + (bit `shiftL` pos)) 0 (zip (toBits' n i) ks)) | i <- [0..dims-1] ]
+                      values  = replicate dims (1 :+ 0)
+                  in
+                      assoc (dims,dims) (0 :+ 0) (zip indices values)
+                                          
+  C op1          ->  let 
+                          mop = evalOp op1
+                          mI  = ident (rows mop)
+                      in
+                          mI <+> mop -- |0><0| ⊗ I^n + |1><1| ⊗ op1
   
-  inner :: v -> v -> Scalar v -- Inner product 
-  norm  :: v -> Realnum v     -- Vector 2-norm  
-  norm a = sqrt(realPart $ inner a a)  
+  Tensor    op1 op2 -> (evalOp op1)  ⊗  (evalOp op2)
+  Compose   op1 op2 | (op_qubits op1 == op_qubits op2) -> (evalOp op1)  ∘  (evalOp op2)  
+                    | otherwise -> error $ 
+                     "\n\nDim-mismatch: " ++ showOp op1 ++ " ∘ " ++ showOp op2 ++ "\n"
+  DirectSum op1 op2 | (op_qubits op1 == op_qubits op2) -> (evalOp op1)  <+> (evalOp op2)  
+                    | otherwise -> error $ 
+                     "\n\nDim-mismatch: " ++ showOp op1 ++ "<+>" ++ showOp op2 ++ "\n"
+  Adjoint op1       -> adj $ evalOp op1
+
+
+evalStep :: (StateT, Outcomes, RNG) -> Step -> (StateT, Outcomes, RNG)
+evalStep (st, outs, rng) step = let n = n_qubits st in case step of
+    Unitary op | (n_qubits op == n) -> (apply (evalOp op) st, outs, rng)
+               | otherwise -> error $ "Dim-mismatch between " ++ showOp op ++ " and n="++show n
+
+    -- outcomes are latest-first, so ks is reversed on input
+    Measure ks -> foldl measure1 (st, outs, rng) (reverse ks)
+
+    Initialize ks vs ->
+      let
+        (st', os, rng') = evalStep (st, [], rng) (Measure ks)
+        -- List of outcomes xor values for each initialized qubit
+        corrections     = zipWith xor os vs
+        -- Now we build the full list, including unaffected qubits        
+        corrFull        = accumArray xor False (0,n-1) (zip ks corrections)
+        corrOp          = foldl (⊗) One [ if c then X else I | c <- elems corrFull ]
+      in evalStep (st', outs, rng') (Unitary corrOp)
+
+  -- | evalProg simply executes a program step by step
+evalProg :: Program -> StateT -> RNG -> (StateT, Outcomes, RNG)
+evalProg steps psi0 rng0 = foldl evalStep (psi0, [], rng0) steps
+
+
+
+{-| measure1 measures a single qubit, projecting the state on the subspace corresponding to the 
+    outcome, and prepends the outcome to the list of outcomes -}
+ 
 
 {-|
  - The tensor product of two operators in matrix representation a :: (m><n) and b :: (p><q) is the kronecker product c :: (m*p >< n*q) with entries c_{i*p+k, j*q+l} = a_{ij}*b_{kl} 
@@ -149,19 +147,21 @@ class (Scalar v ~ Complex (Realnum v), Floating (Realnum v)) => HilbertSpace v w
  - The operator adjoint in matrix representation is the conjugate transpose.
 -}    
 
-instance Operator CMat where
-    tensorProd = kronecker
-    directSum a b = fromBlocks [[a, zeros (rows a) (cols b)],
-                                [zeros (rows b) (cols a), b]]
-    adj = tr -- HMatrix confusingly defines conjugate transpose as 'tr' (standard trace notation)
+instance HasTensorProduct CMat where (⊗) = kronecker
+instance HasAdjoint CMat where adj = tr -- HMatrix confusingly defines conjugate transpose as 'tr' 
+instance HasQubits CMat where  n_qubits op = ilog2 (rows op)
+instance HasDirectSum CMat where
+    (⊕) a b = fromBlocks [[a, zeros (rows a) (cols b)],
+                          [zeros (rows b) (cols a), b]]
 
+instance Operator CMat
 
 {-| We implement ket-states as (n >< 1) matrices (= column vectors), and bra-states as (1 >< n) matrices (= row vectors). Thus StateT inherits the operator operations (recall that states
 are also linear operators by Riesz representation), but we can also treat them like vectors,
 so we implement the VectorSpace operations. -}
-instance HilbertSpace StateT where
-    type Scalar  StateT = ComplexT 
-    type Realnum StateT = RealT
+instance HilbertSpace CMat where
+    type Scalar  CMat = ComplexT 
+    type Realnum CMat = RealT
     
     (.*) = scale
     (.+) a b = a+b
@@ -175,17 +175,13 @@ instance HilbertSpace StateT where
             else 
                 error $ "inner: incompatible shapes " ++ (show (m,n)) ++ " != " ++ (show (p,q))
 
+    normalize :: CMat -> CMat
+    normalize s = let 
+          n = (norm_2 (flatten s))
+        in 
+          if (n < tol) then s 
+          else              s / scalar (n :+ 0)
 
-evalStepOp :: Int -> [Bool] -> Step -> (CMat, [Bool])
-evalStepOp _ [] _ = error "Please provide a path."
-evalStepOp n (p:path) step = case step of
-    Unitary op -> (evalOp op, p:path) -- TODO: assert n = dim op?
-    Measure [] -> (ident (2^n) :: CMat, p:path)
-    Measure (k:ks) -> let
-            proj_k          = measureProjection n k (if p then 1 else 0)
-            (proj_ks,path') = evalStepOp n path (Measure ks)
-         in
-            (proj_ks <> proj_k, path') 
 
 {-|
  measureProjection n k result 
@@ -198,23 +194,12 @@ I ⨷ ... ⨷ I ⨷ P ⨷ I ⨷ ... ⨷ I
  \------------ n ------------/
 -}
 measureProjection :: Int -> Int -> Int -> CMat
-measureProjection n k result = 
-    let p = if k==0 
-            then
-                let v = fromIntegral result :: ComplexT
-                in (2><2) [1-v, 0,
-                           0,   v]
-            else 
-                evalOp I
+measureProjection n k v' = let     
+        v = fromIntegral v' :+ 0
+        p = (2><2) [1-v,0,
+                    0,  v]
     in
-        if n>1 
-        then
-            p ⊗ (measureProjection (n-1) (k-1) result)
-        else 
-            p
-
-
-
+        evalOp(Id k) ⊗ p ⊗ evalOp (Id (n-k-1))
 
 
 -- Auxiliary definitions -- move to internal module?
@@ -228,12 +213,6 @@ one = 1
 zeros :: Int -> Int -> CMat
 zeros m n = konst 0 (m,n)
 
-normalize :: StateT -> StateT
-normalize s = let 
-        n = (norm_2 (flatten s))
-    in 
-        if (n < tol) then s 
-        else              s / scalar (n :+ 0)
         
 
 
