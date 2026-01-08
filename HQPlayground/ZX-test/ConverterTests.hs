@@ -5,7 +5,7 @@ import qualified HQP.QOp.Syntax as QOp
 import HQP.ZX.Convert
 import HQP.ZX.Syntax
 import Algebra.Graph.Undirected
-
+import Data.Ratio
 tests::TestTree
 tests =
     testGroup "QC to ZX conversion tests"
@@ -23,16 +23,16 @@ tests =
                     , Node (0,1) (Red $ PiHalves 2)
                     , Node (0,2) Output]),
             testCase "Rz" $
-                convert (QOp.R QOp.Z (fromIntegral 7/8)) 
+                convert (QOp.R QOp.Z (7%8)) 
                 @?= (path 
                     [Node (0,0) Input
-                    , Node (0,1) (Green $ Frac (fromIntegral 7/8))
+                    , Node (0,1) (Green $ Frac (7%8))
                     , Node (0,2) Output]),
             testCase "Rx" $
-                convert (QOp.R QOp.X (fromIntegral 7/8))
+                convert (QOp.R QOp.X (7%8))
                 @?= (path 
                 [ Node (0,0) Input
-                , Node (0,1) (Red $ Frac (fromIntegral 7/8))
+                , Node (0,1) (Red $ Frac (7%8))
                 , Node (0,2) Output]),
             {- Reference: https://zxcalculus.com/figures/cnot.svg
             -G---

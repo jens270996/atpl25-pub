@@ -1,5 +1,5 @@
 module HQP.ZX.Syntax where
-import Data.Complex
+
 import Algebra.Graph.Undirected
 import Data.Fixed (mod')
 
