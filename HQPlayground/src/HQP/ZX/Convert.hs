@@ -27,7 +27,7 @@ fromQOp op = case op of
     QOp.X           -> wrap (Red (PiHalves 2))
     QOp.R QOp.Z a   -> wrap (Green (Frac a))
     QOp.R QOp.X a   -> wrap (Red (Frac a))
-    QOp.H           -> wrap H -- split into three spiders
+    QOp.H           -> wrap H -- TODO: split into three spiders
     QOp.Id 1        -> wrap Wire
     QOp.C QOp.X     -> do c1 <- generateVertexId
                           switchLane
