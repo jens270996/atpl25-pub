@@ -3,7 +3,7 @@ import HQP.ZX.Syntax
 import Algebra.Graph.Undirected
 import Data.List
 
--- Folds a graph by applying a function to each vertex accumulating a new graph.
+-- Applies a function to each vertex in the graph
 foldv :: (ZXNode -> ZXDiagram -> ZXDiagram) -> ZXDiagram -> ZXDiagram
 foldv f g = recurse (vertexList g) g 
   where
@@ -49,6 +49,14 @@ asPhase node =
         Green p -> Just p
         Red p   -> Just p
         _       -> Nothing
+
+isHadamard :: ZXNode -> Bool
+isHadamard (Node _ H) = True
+isHadamard _ = False
+
+asHadamard :: ZXNode -> Maybe ZXElement
+asHadamard (Node _ H) = Just H
+asHadamard _ = Nothing
 
 isInput :: ZXNode -> Bool
 isInput (Node _ v) = case v of
