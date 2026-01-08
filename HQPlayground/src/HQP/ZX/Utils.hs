@@ -4,8 +4,8 @@ import Algebra.Graph.Undirected
 import Data.List
 
 -- Applies a function to each vertex in the graph
-mapv :: (ZXNode -> ZXDiagram -> ZXDiagram) -> ZXDiagram -> ZXDiagram
-mapv f g = recurse (vertexList g) g 
+foldv :: (ZXNode -> ZXDiagram -> ZXDiagram) -> ZXDiagram -> ZXDiagram
+foldv f g = recurse (vertexList g) g 
   where
     recurse [] g' = g'
     recurse (v:vs) g' = recurse vs (f v g')

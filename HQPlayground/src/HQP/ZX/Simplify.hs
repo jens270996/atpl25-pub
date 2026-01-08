@@ -9,7 +9,7 @@ import Data.Function ((&))
 
 -- If a spider has phase 0 and two legs, it can be removed.
 removeSimpleSpiders :: ZXDiagram -> ZXDiagram
-removeSimpleSpiders graph = mapv helper graph
+removeSimpleSpiders graph = foldv helper graph
   where
     helper node graph'
         | Just (PiHalves 0) <- asPhase node
@@ -20,7 +20,7 @@ removeSimpleSpiders graph = mapv helper graph
 
 -- Hadamard are self-inverse, so two Hadamard gates on the same edge cancel out.
 removeHadamards :: ZXDiagram -> ZXDiagram
-removeHadamards graph = mapv helper graph
+removeHadamards graph = foldv helper graph
   where
     helper h1 graph'
         | isHadamard h1
@@ -31,7 +31,7 @@ removeHadamards graph = mapv helper graph
 
 -- If same-color spiders are connected, they can be merged into a single spider with phase equal to the sum of the phases.
 mergeRedSpiders :: ZXDiagram -> ZXDiagram
-mergeRedSpiders graph = mapv helper graph
+mergeRedSpiders graph = foldv helper graph
   where
     helper node graph'
         | Just (nid, nPhase) <- asRed node
@@ -42,7 +42,7 @@ mergeRedSpiders graph = mapv helper graph
         | otherwise = graph'
 
 mergeGreenSpiders :: ZXDiagram -> ZXDiagram
-mergeGreenSpiders graph = mapv helper graph
+mergeGreenSpiders graph = foldv helper graph
   where
     helper node graph'
         | Just (nid, nPhase) <- asGreen node
@@ -56,7 +56,7 @@ mergeGreenSpiders graph = mapv helper graph
 -- changeColorOnMajority :: ZXDiagram -> ZXDiagram
 
 alwaysRule2 :: ZXDiagram -> ZXDiagram
-alwaysRule2 graph = mapv helper graph
+alwaysRule2 graph = foldv helper graph
   where
     helper node graph'
         | Just (_, PiHalves 2) <- asGreen node
@@ -68,7 +68,7 @@ alwaysRule2 graph = mapv helper graph
 
 -- This is alwaysRule2 with colors swapped
 alwaysRule5 :: ZXDiagram -> ZXDiagram
-alwaysRule5 graph = mapv helper graph
+alwaysRule5 graph = foldv helper graph
   where
     helper node graph'
         | Just (_, PiHalves 2) <- asRed node
@@ -82,7 +82,7 @@ alwaysRule5 graph = mapv helper graph
 
 -- Red1(+)-Green1(+)-Red2(+)-Green2(+) -> Red1(pi)-Green1(+)-Red2(+)
 alwaysRule6 :: ZXDiagram -> ZXDiagram
-alwaysRule6 graph = mapv helper graph
+alwaysRule6 graph = foldv helper graph
   where 
     helper green1 graph'
         | Just (_, PiHalves 1) <- asGreen green1
