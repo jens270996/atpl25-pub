@@ -76,3 +76,6 @@ getVertexId (Node v _) = v
 
 vertexLane :: ZXNode -> Lane
 vertexLane = fst . getVertexId
+
+vertexDepth :: ZXNode -> Depth
+vertexDepth = snd . getVertexId

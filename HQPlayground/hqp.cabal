@@ -56,6 +56,7 @@ library core
       HQP.ZX.Simplify
       HQP.ZX.Convert
       HQP.ZX.Visualize
+      HQP.ZX.Extract
       -- Example quantum programs written in HQP:
       Programs.QFT
       Programs.QuantumAdder
