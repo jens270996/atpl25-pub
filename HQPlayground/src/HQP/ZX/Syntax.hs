@@ -47,7 +47,11 @@ data ZXElement
     | Input
     | Output
     deriving (Eq,Show)
-data ZXNode = Node Int ZXElement
+    
+type Lane = Int
+type Depth = Int
+type Id = (Lane,Depth)
+data ZXNode = Node Id ZXElement
     deriving (Eq,Show)
 
 instance Ord ZXNode where
