@@ -38,11 +38,5 @@ proceed = IdGenerator (\(lane,depth)-> ((),(lane,depth+1)))
 getLane :: IdGenerator Lane
 getLane = IdGenerator (\(lane,depth)-> (lane,(lane,depth)))
 
-getDepth :: IdGenerator Depth
-getDepth = IdGenerator (\(lane,depth)-> (depth,(lane,depth)))
-
 setLane :: Lane -> IdGenerator ()
 setLane lane = IdGenerator (\(_,depth)-> ((),(lane,depth)))
-
-setDepth :: Depth -> IdGenerator ()
-setDepth depth = IdGenerator (\(lane,_)-> ((),(lane,depth)))

@@ -33,14 +33,9 @@ fromQOp op = case op of
                           switchLane
                           c2 <- generateVertexId
                           return $ edge (Node c1 (Green (PiHalves 0))) (Node c2 (Red (PiHalves 0)))
-    QOp.Tensor a b -> do d <- getDepth -- Get current depth, so we can return
-                         g <- fromQOp a
-                         d' <- getDepth
-                         setDepth d -- Reset depth
+    QOp.Tensor a b -> do g <- fromQOp a
                          switchLane
                          g' <- fromQOp b
-                         d'' <- getDepth
-                         setDepth $ max d' d'' -- We continue from the greatest depth
                          return $  overlay g g'
     QOp.Compose a b -> do l <- getLane -- Get current lane, so we can return
                           g <- fromQOp a
