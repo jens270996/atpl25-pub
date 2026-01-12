@@ -13,8 +13,7 @@ removeSimpleSpiders graph = foldv helper graph
   where
     helper node graph'
         | Just (PiHalves 0) <- asPhase node
-        , neighbor : ns <- getNeighbors node graph'
-        , length ns <= 1
+        , [neighbor,_] <- getNeighbors node graph'
         = replaceVertex node neighbor $ removeEdge node neighbor graph'
         | otherwise = graph'
 
@@ -52,8 +51,6 @@ mergeGreenSpiders graph = foldv helper graph
           in removeEdge newSpider newSpider newGraph
         | otherwise = graph'
 
--- If a spider has a majority of Hadamard gates on its legs, change its color??
--- changeColorOnMajority :: ZXDiagram -> ZXDiagram
 
 alwaysRule2 :: ZXDiagram -> ZXDiagram
 alwaysRule2 graph = foldv helper graph

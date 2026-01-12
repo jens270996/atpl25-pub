@@ -70,11 +70,15 @@ removeSimpleSpiderTests =
                 , Node (0,2) $ Green $ PiHalves 2 ],
         testCase "Removing multiple zero phase simple spiders" $
             removeSimpleSpiders  (path
-                [ Node (0,0) $ Green $ PiHalves 2
-                , Node (0,1) $ Red $ PiHalves 0
-                , Node (0,2) $ Green $ PiHalves 0])
+                [ Node (0,0) Input
+                , Node (0,1) $ Green $ PiHalves 2
+                , Node (0,2) $ Red $ PiHalves 0
+                , Node (0,3) $ Green $ PiHalves 0
+                , Node (0,4) Output])
             @?= path 
-                [ Node (0,0) $ Green $ PiHalves 2 ]
+                [ Node (0,0) Input
+                , Node (0,1) $ Green $ PiHalves 2
+                , Node (0,4) Output]
     ]
 
 removeHadamardsTests :: TestTree
