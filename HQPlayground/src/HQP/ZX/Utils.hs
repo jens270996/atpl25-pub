@@ -2,7 +2,6 @@ module HQP.ZX.Utils where
 import HQP.ZX.Syntax
 import Algebra.Graph.Undirected
 import Data.List
-
 -- Applies a function to each vertex in the graph
 foldv :: (ZXNode -> ZXDiagram -> ZXDiagram) -> ZXDiagram -> ZXDiagram
 foldv f g = recurse (vertexList g) g 
@@ -81,7 +80,8 @@ vertexDepth :: ZXNode -> Depth
 vertexDepth = snd . getVertexId
 
 nextInLane :: ZXDiagram -> ZXNode -> ZXNode
-nextInLane g n = head . filter (\x -> vertexLane x == vertexLane n && vertexDepth x > vertexDepth n) . toList $ neighbours n g
+nextInLane _ (Node id Output) = (Node id Output)
+nextInLane g n = head . filter (\x -> vertexLane x == vertexLane n && vertexDepth x > vertexDepth n) . getNeighbors n $ g
 
 decrementDepth :: ZXNode -> ZXNode
 decrementDepth (Node (lane,depth) e) = (Node (lane,depth-1) e)
