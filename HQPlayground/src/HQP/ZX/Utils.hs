@@ -79,3 +79,9 @@ vertexLane = fst . getVertexId
 
 vertexDepth :: ZXNode -> Depth
 vertexDepth = snd . getVertexId
+
+nextInLane :: ZXDiagram -> ZXNode -> ZXNode
+nextInLane g n = head . filter (\x -> vertexLane x == vertexLane n && vertexDepth x > vertexDepth n) . toList $ neighbours n g
+
+decrementDepth :: ZXNode -> ZXNode
+decrementDepth (Node (lane,depth) e) = (Node (lane,depth-1) e)

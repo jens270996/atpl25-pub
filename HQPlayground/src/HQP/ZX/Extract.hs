@@ -1,5 +1,6 @@
 module HQP.ZX.Extract where
 import HQP.ZX.Syntax
+import HQP.ZX.Utils
 import qualified HQP.QOp.Syntax as QOp
 
 extract :: ZXDiagram -> QOp.QOp
@@ -22,6 +23,13 @@ sweepBoundary (g,circuit,boundary) =
         -- Find new boundary
         -- Remove old boundary from graph
     in sweepBoundary (g,circuit,boundary)
+
+progressBoundary :: (ZXDiagram,QOp.QOp,[ZXNode]) -> (ZXDiagram,QOp.QOp,[ZXNode])
+progressBoundary (g,circuit,boundary) =
+    -- Check if there are connections in boundary between non-adjacent lanes
+    -- if so, compute permutation and swap order
+    -- turn boundary into circuit and compose with existing circuit
+    -- create new boundary from nexts in lane
 
 isQuantumGate :: ZXDiagram -> ZXNode -> Bool
 isQuantumGate g n = case toList $ neighbours n g of
@@ -55,13 +63,4 @@ splitSpider g n = case isQuantumGate g n of
                             -- connect root to zeroSpider
                             g = overlay g $ edge root n
                         in (overlay g (edge n zeroSpider),n)
-
-nextInLane :: ZXDiagram -> ZXNode -> Either String ZXNode
-nextInLane g n = case toList $ neighbours n g of
-                    [n'] | vertexLane n' == vertexLane n -> Right n'
-                    _ -> Left "No single adjacent vertex in lane."
-
-decrementDepth :: ZXNode -> ZXNode
-decrementDepth (Node (lane,depth) e) = (Node (lane,depth-1) e)
-
                       
