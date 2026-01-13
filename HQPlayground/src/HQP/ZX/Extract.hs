@@ -5,6 +5,7 @@ import Algebra.Graph.Undirected
 import Data.List
 import Data.Maybe
 import Debug.Trace
+import Data.Ratio
 import qualified HQP.QOp.Syntax as QOp
 
 extract :: ZXDiagram -> QOp.QOp
@@ -90,6 +91,9 @@ extractCircuit  ((Node _ (Green (PiHalves 2))):boundary) =  QOp.Tensor QOp.Z (ex
 extractCircuit  ((Node _ (Red (PiHalves 2))):boundary) =  QOp.Tensor QOp.X (extractCircuit boundary)
 extractCircuit  ((Node _ (Green (Frac a))):boundary) =  QOp.Tensor (QOp.R QOp.Z a) (extractCircuit boundary)
 extractCircuit  ((Node _ (Red (Frac a))):boundary) = QOp.Tensor (QOp.R QOp.X a) (extractCircuit boundary)
+extractCircuit  ((Node _ (Red (PiHalves 1))):boundary) =  QOp.Tensor QOp.SX (extractCircuit boundary)
+extractCircuit  ((Node _ (Green (PiHalves a))):boundary) =  QOp.Tensor (QOp.R QOp.Z ((toInteger a)%2)) (extractCircuit boundary)
+extractCircuit  ((Node _ (Red (PiHalves a))):boundary) =  QOp.Tensor (QOp.R QOp.X ((toInteger a)%2)) (extractCircuit boundary)
 extractCircuit  ((Node _ H):boundary) = QOp.Tensor QOp.H (extractCircuit boundary)
 extractCircuit  ((Node _ Output):boundary) = QOp.Tensor (QOp.Id 1) (extractCircuit boundary)
 extractCircuit [] = QOp.One
