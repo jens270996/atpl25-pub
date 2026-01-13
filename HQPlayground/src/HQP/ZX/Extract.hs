@@ -22,7 +22,7 @@ sweepBoundary :: (ZXDiagram,QOp.QOp,[ZXNode]) -> (ZXDiagram,QOp.QOp,[ZXNode])
 sweepBoundary (g,circ,boundary) | isEmpty g  = (g,circ,boundary) -- Check that all nodes in boundary are outputs
 sweepBoundary (g,circ,boundary) | all (isOutput) boundary  = (g,circ,boundary) -- Check that all nodes in boundary are outputs
 sweepBoundary (g,circ,boundary) =
-    let (g',boundary') = foldr splitSpiders (g,[]) boundary
+    let (g',boundary') = foldr (splitSpiders boundary) (g,[]) boundary
         -- Check if permutation is required
         (circ',boundary'') = permuteBoundary boundary' g' circ
         -- Turn boundary into quantumCirquit
@@ -33,10 +33,14 @@ sweepBoundary (g,circ,boundary) =
     in sweepBoundary (foldr removeVertex g boundary'',newCircuit,newBoundary)
 
 --split a spider and return the root vertex of the set of split vertices
-splitSpiders :: ZXNode -> (ZXDiagram,[ZXNode]) -> (ZXDiagram,[ZXNode])
--- splitSpiders n (g,boundary) | trace ("splitSpiders " ++ show g ++ " " ++ show n ++ " " ++ show boundary) False = undefined
-splitSpiders n (g,boundary) = case isQuantumGate g n || isInput n || isOutput n of
-                    True -> (g,n:boundary)
+splitSpiders :: [ZXNode] -> ZXNode -> (ZXDiagram,[ZXNode]) -> (ZXDiagram,[ZXNode])
+-- splitSpiders boundary n (g,acc) | trace ("splitSpiders " ++ show boundary ++ " " ++ show g ++ " " ++ show n ++ " " ++ show acc) False = undefined
+splitSpiders boundary n (g,acc) = case isQuantumGate g n || isInput n || isOutput n of
+                    True | asPhase n == (Just $ PiHalves 0) -- Align CNOTs
+                         , all (`notElem` boundary) (getNeighbors n g)
+                         -> let wire = decrementDepth (Node (getVertexId n) Wire)
+                            in  (overlay g (edge wire n),wire:acc)
+                    True -> (g,n:acc)
                     False | asPhase n /= (Just $ PiHalves 0) ->
                         -- shot out zero spider with remaining legs.
                         -- keep root spider with phase
@@ -44,7 +48,7 @@ splitSpiders n (g,boundary) = case isQuantumGate g n || isInput n || isOutput n 
                             g = replaceVertex n zeroSpider g
                             -- update id for n
                             n =  decrementDepth n
-                        in (overlay g (edge n zeroSpider),n:boundary)
+                        in (overlay g (edge n zeroSpider),n:acc)
                     _ -> -- 0 spider with more than 3 legs
                         let neighs = getNeighbors n g
                             neigh = head $ filter (\n' -> vertexLane n' /= vertexLane n) neighs
@@ -56,7 +60,7 @@ splitSpiders n (g,boundary) = case isQuantumGate g n || isInput n || isOutput n 
                             g' = overlay g $ edge root neigh
                             -- connect root to zeroSpider
                             g'' = overlay g' $ edge root n
-                        in (g'',root:boundary)
+                        in (g'',root:acc)
 
 
 permuteBoundary :: [ZXNode] -> ZXDiagram -> QOp.QOp -> (QOp.QOp,[ZXNode])
@@ -65,8 +69,8 @@ permuteBoundary boundary g circ | permutationRequired boundary g =
     let controls = filter (\(Node _ c) ->  c == (Green (PiHalves 0))) boundary
         xs = map (\c -> head . filter (\x -> hasEdge c x g && getElement x == (Red (PiHalves 0))) $ boundary) controls
         -- reorder boundary according to permutation
-        depPairs = merge controls xs
-        newBoundary = depPairs ++ filter (\x -> x `notElem` depPairs) boundary
+        cNots = merge controls xs
+        newBoundary = cNots ++ filter (\x -> x `notElem` cNots) boundary
         -- compose permutation with current circ
         perm = catMaybes . map (\n -> elemIndex n newBoundary) $ boundary
     in (circ <> (QOp.Permute perm),newBoundary)
@@ -89,6 +93,7 @@ merge [] ys = ys
 merge (x:xs) ys = x:merge ys xs
                              
 permutationRequired :: [ZXNode] -> ZXDiagram -> Bool
+-- permutationRequired boundary g | trace ("permutationRequired " ++ show g ++ " " ++ show boundary) False = undefined
 permutationRequired ((Node _ (Red (PiHalves 0))):_) _ = True
 permutationRequired ((Node id' (Green (PiHalves 0))):((Node id'' (Red (PiHalves 0))):boundary)) g = hasEdge (Node id' (Green (PiHalves 0))) (Node id'' (Red (PiHalves 0))) g || permutationRequired boundary g
 permutationRequired [] _ = False
