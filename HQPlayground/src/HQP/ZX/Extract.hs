@@ -22,24 +22,31 @@ sweepBoundary :: (ZXDiagram,QOp.QOp,[ZXNode]) -> (ZXDiagram,QOp.QOp,[ZXNode])
 sweepBoundary (g,circ,boundary) | isEmpty g  = (g,circ,boundary) -- Check that all nodes in boundary are outputs
 sweepBoundary (g,circ,boundary) | all (isOutput) boundary  = (g,circ,boundary) -- Check that all nodes in boundary are outputs
 sweepBoundary (g,circ,boundary) =
-    let (g',boundary') = foldr (splitSpiders boundary) (g,[]) boundary
+        -- Split spiders
+    let (g',boundary') = foldr splitSpiders (g,[]) boundary
+        -- Align CNOTs
+        (g'',boundary'') = foldr (alignCNOTs boundary') (g',[]) boundary' 
         -- Check if permutation is required
-        (circ',boundary'') = permuteBoundary boundary' g' circ
+        (circ',boundary''') = permuteBoundary boundary'' g'' circ
         -- Turn boundary into quantumCirquit
-        newCircuit = circ' <> (extractCircuit boundary'')
+        newCircuit = circ' <> (extractCircuit boundary''')
         -- Find new boundary
-        newBoundary = map (nextInLane g) boundary''
+        newBoundary = map (nextInLane g'') boundary'''
         -- Remove old boundary from graph
-    in sweepBoundary (foldr removeVertex g boundary'',newCircuit,newBoundary)
+    in sweepBoundary (foldr removeVertex g'' boundary''',newCircuit,newBoundary)
+
+alignCNOTs :: [ZXNode] -> ZXNode -> (ZXDiagram,[ZXNode]) -> (ZXDiagram,[ZXNode])
+alignCNOTs boundary n (g,acc) | asPhase n == (Just $ PiHalves 0) -- Align CNOTs
+                              , all (`notElem` boundary) (getNeighbors n g)
+                              = let wire = decrementDepth (Node (getVertexId n) Wire)
+                                 in  (overlay g (edge wire n),wire:acc)
+alignCNOTs boundary n (g,acc) = (g,n:acc)
+
 
 --split a spider and return the root vertex of the set of split vertices
-splitSpiders :: [ZXNode] -> ZXNode -> (ZXDiagram,[ZXNode]) -> (ZXDiagram,[ZXNode])
--- splitSpiders boundary n (g,acc) | trace ("splitSpiders " ++ show boundary ++ " " ++ show g ++ " " ++ show n ++ " " ++ show acc) False = undefined
-splitSpiders boundary n (g,acc) = case isQuantumGate g n || isInput n || isOutput n of
-                    True | asPhase n == (Just $ PiHalves 0) -- Align CNOTs
-                         , all (`notElem` boundary) (getNeighbors n g)
-                         -> let wire = decrementDepth (Node (getVertexId n) Wire)
-                            in  (overlay g (edge wire n),wire:acc)
+splitSpiders :: ZXNode -> (ZXDiagram,[ZXNode]) -> (ZXDiagram,[ZXNode])
+-- splitSpiders n (g,acc) | trace ("splitSpiders " ++ show boundary ++ " " ++ show g ++ " " ++ show n ++ " " ++ show acc) False = undefined
+splitSpiders n (g,acc) = case isQuantumGate g n || isInput n || isOutput n of
                     True -> (g,n:acc)
                     False | asPhase n /= (Just $ PiHalves 0) ->
                         -- shot out zero spider with remaining legs.
