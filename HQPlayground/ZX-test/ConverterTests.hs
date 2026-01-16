@@ -84,6 +84,24 @@ tests =
                     , (Node (1,0) Input, Node (1,1) (Red $ PiHalves 2))
                     , (Node (1,1) (Red $ PiHalves 2), Node (1,2) (Green $ PiHalves 2))
                     , (Node (1,2) (Green $ PiHalves 2), Node (1,3) Output)
+                    ]),
+            testCase "Simple permutation" $
+                convert (QOp.Compose (QOp.Permute [1,0]) (QOp.Tensor QOp.X QOp.Z)) 
+                @?= ( edges
+                    [ (Node (0,0) Input, Node (0,2) (Green $ PiHalves 2))
+                    , (Node (1,0) Input, Node (1,2) (Red $ PiHalves 2))
+                    , (Node (0,2) (Green $ PiHalves 2), Node (1,3) Output)
+                    , (Node (1,2) (Red $ PiHalves 2), Node (0,3) Output)
+                    ]),
+            testCase "Multiple permutations" $
+                convert (QOp.Compose (QOp.Compose (QOp.Permute [1,0]) (QOp.Tensor QOp.X QOp.Z)) (QOp.Compose (QOp.Permute [1,0]) (QOp.Tensor QOp.X QOp.Z)))
+                @?= ( edges
+                    [ (Node (0,0) Input, Node (0,2) (Green $ PiHalves 2))
+                    , (Node (0,2) (Green $ PiHalves 2), Node (0,4) (Red $ PiHalves 2))
+                    , (Node (0,4) (Red $ PiHalves 2), Node (0,5) Output)
+                    , (Node (1,0) Input, Node (1,2) (Red $ PiHalves 2))
+                    , (Node (1,2) (Red $ PiHalves 2), Node (1,4) (Green $ PiHalves 2))
+                    , (Node (1,4) (Green $ PiHalves 2), Node (1,5) Output)
                     ])
             -- We move all compositions up before conversion, so no "Composition under Tensor"
         ]
