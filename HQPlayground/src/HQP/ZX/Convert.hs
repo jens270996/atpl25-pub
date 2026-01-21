@@ -69,7 +69,3 @@ compose a b =
         aLayer = map maximum . groupBy sameLane $ vertexList a
         -- Add edge between vertices
     in overlay g . edges $ zip aLayer bLayer
-
-
-sameLane :: ZXNode -> ZXNode -> Bool
-sameLane a b = vertexLane a == vertexLane b

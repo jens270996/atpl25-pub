@@ -11,30 +11,31 @@ visualizeDiagram :: ZXDiagram -> Diagram B
 visualizeDiagram g =
     let
         es = edgeList g
-        is = filter isInput $ vertexList g
-        os = filter isOutput $ vertexList g
-    in visualizeVertices es (zip is os) # visualizeEdges es
+    in visualizeVertices g # visualizeEdges es
 
-visualizeVertices ::  [(ZXNode,ZXNode)] -> [(ZXNode,ZXNode)] -> Diagram B
-visualizeVertices es ios =
-    -- TODO: filter out nodes already used on a path, so we do not display a node twice.
-    vsep 2 $ map (\(i,o) -> visualizeLine $ iOPath es i o) ios
+visualizeVertices ::  ZXDiagram -> Diagram B
+visualizeVertices =
+    vsep 2 . map visualizeLane . lanes
 
 
-visualizeLine :: [ZXNode] -> Diagram B
-visualizeLine ns = hsep 5 . map visualizeNode $ ns
+visualizeLane :: [ZXNode] -> Diagram B
+visualizeLane ns = hsep 5 . map visualizeNode $ ns
 
 visualizeNode :: ZXNode -> Diagram B
 visualizeNode (Node id e) = visualizeElement e # named (show id)
 
 visualizeElement :: ZXElement -> Diagram B
-visualizeElement H = square 0.4 # fc yellow 
+visualizeElement H = square 0.4 # fc yellow
+visualizeElement (Red (PiHalves 0)) = circle 0.5 # fc red
+visualizeElement (Green (PiHalves 0)) = circle 0.5 # fc green
 visualizeElement (Red p) = (text $ show p) <> circle 1 # fc red
 visualizeElement (Green p) =  (text $ show p ) <> circle 1 # fc green
 visualizeElement Input = text "in" <> circle 1 
 visualizeElement Output = text "out" <> circle 1 
 
 
+lanes :: ZXDiagram -> [[ZXNode]]
+lanes = groupBy sameLane . vertexList
 
 visualizeInputs :: ZXDiagram -> Diagram B
 visualizeInputs g = vsep 1 (map visualizeElement $ getInputs g)
@@ -53,18 +54,6 @@ getOutputs g = getElementsWhere g (Output==)
 getElementsWhere :: ZXDiagram -> (ZXElement -> Bool) -> [ZXElement]
 getElementsWhere g pred = filter pred . map getElement $ vertexList g 
 
-
--- Instead :: Find shortest path from input to output.
--- Idea :: Always pick neighbor with largest id??
--- TODO :: More robust solution?? Can we impose some ordering on the graph?
-iOPath :: [(ZXNode,ZXNode)] -> ZXNode -> ZXNode -> [ZXNode]
-iOPath es i o = iOPathRec es (getVertexId i) (getVertexId o) [i]
-
-iOPathRec :: [(ZXNode,ZXNode)] -> Id -> Id -> [ZXNode] -> [ZXNode]
-iOPathRec _ cid did path | cid == did = reverse path
-iOPathRec es cid did path =
-    let next = maximum . map snd . filter (\(Node id' _, Node id'' _) -> id' == cid) $ es
-    in  iOPathRec es (getVertexId next) did (next:path)
 -- Use arrow to connect
 visualizeEdges :: [(ZXNode,ZXNode)] -> Diagram B -> Diagram B
 visualizeEdges es d = foldr visualizeEdge d es

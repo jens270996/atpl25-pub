@@ -83,5 +83,8 @@ nextInLane :: ZXDiagram -> ZXNode -> ZXNode
 nextInLane _ (Node id Output) = (Node id Output)
 nextInLane g n = head . filter (\x -> vertexLane x == vertexLane n && vertexDepth x > vertexDepth n) . getNeighbors n $ g
 
+sameLane :: ZXNode -> ZXNode -> Bool
+sameLane a b = vertexLane a == vertexLane b
+
 decrementDepth :: ZXNode -> ZXNode
 decrementDepth (Node (lane,depth) e) = (Node (lane,depth-1) e)
